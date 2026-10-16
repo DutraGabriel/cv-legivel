@@ -3,18 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Content-Security-Policy: só scripts, estilos e fontes do próprio site; a única conexão externa é a API do IBGE -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://servicodados.ibge.gov.br; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>CV Legível — currículos que o ATS consegue ler</title>
-  <meta name="description" content="Gerador de currículo em PDF de coluna única, com texto real e seções padrão, otimizado para ATS e triagem por IA.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <meta name="description" content="Gerador gratuito de currículo em PDF de coluna única, com texto real e seções padrão, otimizado para ATS e triagem por IA. Seus dados não saem do navegador.">
+  <link rel="canonical" href="https://dutragabriel.github.io/cv-legivel/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="CV Legível — currículos que o ATS consegue ler">
+  <meta property="og:description" content="Monte um currículo em PDF legível por sistemas de triagem (ATS) e por IA, com checagem em tempo real e comparação com a vaga. Grátis e sem cadastro.">
+  <meta property="og:url" content="https://dutragabriel.github.io/cv-legivel/">
+  <meta property="og:image" content="https://dutragabriel.github.io/cv-legivel/docs/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Tela do CV Legível: formulário, checagem ATS e prévia do currículo em A4">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2d47a8">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <!-- aplica o tema salvo antes da pintura, para não piscar no tema errado -->
-  <script>try { const t = localStorage.getItem("cv-legivel-tema"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/theme-init.js"></script>
+  <script src="assets/js/main.js" type="module"></script>
 </head>
 <body>
+<a class="skip" href="#form">Pular para o formulário</a>
 <div class="wrap">
   <header class="top">
     <div>
@@ -23,19 +38,20 @@
     </div>
     <div class="actions">
       <span id="exampleBadge" class="badge" hidden>Dados de exemplo</span>
-      <button type="button" class="btn" id="themeBtn"></button>
-      <button type="button" class="btn" id="clearBtn">Limpar tudo</button>
+      <label class="lang">Idioma do currículo <select id="cvLang"></select></label>
+      <button type="button" class="btn" id="themeBtn">Tema</button>
       <button type="button" class="btn-primary" id="pdfBtn">Gerar PDF</button>
     </div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="Alternar entre formulário e prévia">
+  <main>
+  <div class="tabs" role="tablist" aria-label="Alternar entre formulário e prévia">
     <button type="button" role="tab" id="tabForm" data-view="form" aria-controls="form" aria-selected="true">Editar</button>
-    <button type="button" role="tab" id="tabPreview" data-view="preview" aria-controls="preview" aria-selected="false">Prévia e checagem<span class="score" id="tabScore"></span></button>
-  </nav>
+    <button type="button" role="tab" id="tabPreview" data-view="preview" aria-controls="preview" aria-selected="false" tabindex="-1">Prévia e checagem<span class="score" id="tabScore"></span></button>
+  </div>
 
   <div class="grid" id="grid" data-view="form">
-    <form id="form" autocomplete="on" novalidate>
+    <form id="form" role="tabpanel" aria-labelledby="tabForm" autocomplete="on" novalidate>
       <fieldset>
         <legend>Dados pessoais</legend>
         <details class="help">
@@ -48,20 +64,20 @@
           </ul>
         </details>
         <div class="row">
-          <label>Nome completo<input id="nome" data-k="nome" autocomplete="name" placeholder="Ex.: Ana Paula Ribeiro"><span class="hint">só letras; sem apelidos</span></label>
-          <label>Cargo pretendido<input id="cargo" data-k="cargo" autocomplete="organization-title" placeholder="Ex.: Analista de Dados Pleno"><span class="hint">igual ao título da vaga</span></label>
+          <label>Nome completo<input type="text" id="nome" data-k="nome" autocomplete="name" placeholder="Ex.: Ana Paula Ribeiro"><span class="hint">só letras; sem apelidos</span></label>
+          <label>Cargo pretendido<input type="text" id="cargo" data-k="cargo" autocomplete="organization-title" placeholder="Ex.: Analista de Dados Pleno"><span class="hint">igual ao título da vaga</span></label>
         </div>
         <div class="row">
           <label>E-mail<input id="email" data-k="email" type="email" autocomplete="email" placeholder="Ex.: ana.ribeiro@email.com"></label>
-          <label>Telefone<input id="telefone" data-k="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="(48) 99999-0000"></label>
+          <label>Telefone<input id="telefone" data-k="telefone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(48) 99999-0000"></label>
         </div>
         <div class="row">
           <label>UF<select id="uf"></select></label>
           <label>Cidade<select id="cidade" disabled></select></label>
         </div>
         <div class="row">
-          <label>LinkedIn<input id="linkedin" data-k="linkedin" inputmode="url" autocapitalize="off" placeholder="linkedin.com/in/seu-perfil"></label>
-          <label>Portfólio / GitHub (opcional)<input id="site" data-k="site" inputmode="url" autocapitalize="off" placeholder="Ex.: github.com/anaribeiro"></label>
+          <label>LinkedIn<input type="text" id="linkedin" data-k="linkedin" inputmode="url" autocapitalize="off" placeholder="linkedin.com/in/seu-perfil"></label>
+          <label>Portfólio / GitHub (opcional)<input type="text" id="site" data-k="site" inputmode="url" autocapitalize="off" placeholder="Ex.: github.com/anaribeiro"></label>
         </div>
       </fieldset>
 
@@ -134,15 +150,49 @@
       </fieldset>
     </form>
 
-    <aside id="preview">
-      <div class="checks">
-        <h2><span>Checagem para ATS</span><span id="score"></span></h2>
+    <aside id="preview" role="tabpanel" aria-labelledby="tabPreview">
+      <section class="card privacy" aria-labelledby="privacyTitle">
+        <h2 id="privacyTitle">Seus dados ficam neste navegador</h2>
+        <p>Nada do que você digita é enviado a servidores. Em computador compartilhado, exporte uma cópia e use "Limpar tudo" ao terminar.</p>
+        <div class="card-actions">
+          <button type="button" class="btn small" id="exportBtn">Exportar dados</button>
+          <button type="button" class="btn small" id="importBtn">Importar dados</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button type="button" class="btn small danger" id="clearBtn">Limpar tudo</button>
+        </div>
+      </section>
+
+      <section class="checks" aria-labelledby="checksTitle">
+        <h2 id="checksTitle"><span>Checagem para ATS</span><span id="score"></span></h2>
         <ul id="checkList"></ul>
+      </section>
+
+      <details class="card job">
+        <summary>Comparar com uma vaga</summary>
+        <label>Cole aqui a descrição da vaga <span class="hint">os termos ficam só no seu navegador</span>
+          <textarea id="vaga" rows="4" maxlength="15000" placeholder="Ex.: Requisitos: Python, Django, PostgreSQL, Docker, AWS..."></textarea></label>
+        <div id="jobResult" aria-live="polite"></div>
+      </details>
+
+      <div class="sheet-bar">
+        <span>Prévia do PDF</span>
+        <button type="button" class="btn small" id="atsBtn">Ver como o ATS lê</button>
       </div>
-      <div class="sheet-wrap"><div class="sheet" id="sheet" aria-label="Prévia do currículo"></div></div>
+      <div class="sheet-wrap"><section class="sheet" id="sheet" aria-label="Prévia do currículo"></section></div>
       <div class="status" id="status" role="status"></div>
     </aside>
   </div>
+  </main>
 </div>
+
+<dialog id="atsDialog" aria-labelledby="atsTitle">
+  <div class="dialog-head">
+    <h2 id="atsTitle">Texto extraído do seu PDF</h2>
+    <button type="button" class="btn small" id="atsClose">Fechar</button>
+  </div>
+  <p class="hint">É assim que um sistema de triagem lê o arquivo: na mesma ordem, sem perder seções. Este texto foi extraído do PDF gerado agora, com a mesma técnica que esses sistemas usam.</p>
+  <pre id="atsText"></pre>
+</dialog>
+<div id="live" class="sr-only" aria-live="polite"></div>
 </body>
 </html>
