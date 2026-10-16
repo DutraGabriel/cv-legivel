@@ -1,0 +1,8 @@
+{
+  "jspdf": "4.2.1",
+  "pdfjs-dist": "6.4.299",
+  "@expo-google-fonts/arimo": "0.4.3",
+  "@fontsource-variable/bricolage-grotesque": "5.3.0",
+  "@fontsource-variable/instrument-sans": "5.3.0",
+  "@fontsource/ibm-plex-mono": "5.3.0"
+}

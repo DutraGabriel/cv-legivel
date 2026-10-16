@@ -1,6 +1,16 @@
+# sistema e editores
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
+# dependências e saídas de ferramentas (assets/vendor É versionado: o site não tem build)
 node_modules/
+test-results/
+playwright-report/
 *.log
+
+# dados e segredos nunca vão para o repositório
+.env
+.env.*
+cv-legivel-dados*.json
