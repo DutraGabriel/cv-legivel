@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <!-- aplica o tema salvo antes da pintura, para não piscar no tema errado -->
+  <script>try { const t = localStorage.getItem("cv-legivel-tema"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="assets/js/app.js" defer></script>
 </head>
@@ -21,34 +23,43 @@
     </div>
     <div class="actions">
       <span id="exampleBadge" class="badge" hidden>Dados de exemplo</span>
+      <button type="button" class="btn" id="themeBtn"></button>
       <button type="button" class="btn" id="clearBtn">Limpar tudo</button>
       <button type="button" class="btn-primary" id="pdfBtn">Gerar PDF</button>
     </div>
   </header>
 
-  <div class="grid">
+  <nav class="tabs" role="tablist" aria-label="Alternar entre formulário e prévia">
+    <button type="button" role="tab" id="tabForm" data-view="form" aria-controls="form" aria-selected="true">Editar</button>
+    <button type="button" role="tab" id="tabPreview" data-view="preview" aria-controls="preview" aria-selected="false">Prévia e checagem<span class="score" id="tabScore"></span></button>
+  </nav>
+
+  <div class="grid" id="grid" data-view="form">
     <form id="form" autocomplete="on">
       <fieldset>
         <legend>Dados pessoais</legend>
         <div class="row">
-          <label>Nome completo<input id="nome" data-k="nome"></label>
-          <label>Cargo pretendido<input id="cargo" data-k="cargo"></label>
+          <label>Nome completo<input id="nome" data-k="nome" placeholder="Ex.: Ana Paula Ribeiro"></label>
+          <label>Cargo pretendido<input id="cargo" data-k="cargo" placeholder="Ex.: Analista de Dados Pleno"><span class="hint">igual ao título da vaga</span></label>
         </div>
         <div class="row">
-          <label>E-mail<input id="email" data-k="email" type="email"></label>
-          <label>Telefone<input id="telefone" data-k="telefone" type="tel"></label>
+          <label>E-mail<input id="email" data-k="email" type="email" placeholder="Ex.: ana.ribeiro@email.com"></label>
+          <label>Telefone<input id="telefone" data-k="telefone" type="tel" inputmode="numeric" placeholder="(48) 99999-0000"></label>
         </div>
         <div class="row">
-          <label>Cidade / UF<input id="cidade" data-k="cidade"></label>
+          <label>UF<select id="uf"></select></label>
+          <label>Cidade<select id="cidade" disabled></select></label>
+        </div>
+        <div class="row">
           <label>LinkedIn<input id="linkedin" data-k="linkedin" placeholder="linkedin.com/in/seu-perfil"></label>
-          <label>Portfólio / GitHub<input id="site" data-k="site"></label>
+          <label>Portfólio / GitHub<input id="site" data-k="site" placeholder="Ex.: github.com/anaribeiro"></label>
         </div>
       </fieldset>
 
       <fieldset>
         <legend>Resumo profissional</legend>
         <label>2 a 4 frases: quem você é, anos de experiência, especialidade e o que entrega
-          <textarea id="resumo" data-k="resumo" rows="4"></textarea>
+          <textarea id="resumo" data-k="resumo" rows="4" placeholder="Ex.: Analista de dados com 4 anos de experiência em SQL, Python e Power BI no varejo. Automatizei relatórios que economizaram 20 horas por mês da equipe financeira. Busco atuar como Analista de Dados Pleno em empresas orientadas a dados."></textarea>
           <span class="hint" id="resumoCount"></span>
         </label>
       </fieldset>
@@ -68,15 +79,15 @@
       <fieldset>
         <legend>Habilidades, idiomas e certificações</legend>
         <label>Habilidades técnicas <span class="hint">separe por vírgula; use os mesmos termos da vaga</span>
-          <textarea id="habilidades" data-k="habilidades" rows="3"></textarea></label>
-        <label>Idiomas <span class="hint">um por linha, ex.: Inglês - Avançado</span>
-          <textarea id="idiomas" data-k="idiomas" rows="2"></textarea></label>
-        <label>Certificações e cursos <span class="hint">um por linha</span>
-          <textarea id="certificacoes" data-k="certificacoes" rows="2"></textarea></label>
+          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="Ex.: SQL, Python, Power BI, Excel avançado, ETL, Modelagem de dados, Scrum, Comunicação com stakeholders"></textarea></label>
+        <label>Idiomas <span class="hint">um por linha: idioma - nível</span>
+          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="Ex.:&#10;Inglês - Avançado&#10;Espanhol - Intermediário"></textarea></label>
+        <label>Certificações e cursos <span class="hint">um por linha, com o nome oficial e o ano</span>
+          <textarea id="certificacoes" data-k="certificacoes" rows="2" placeholder="Ex.:&#10;Microsoft Certified: Power BI Data Analyst Associate (2024)&#10;Google Data Analytics Professional Certificate (2023)"></textarea></label>
       </fieldset>
     </form>
 
-    <aside>
+    <aside id="preview">
       <div class="checks">
         <h2><span>Checagem para ATS</span><span id="score"></span></h2>
         <ul id="checkList"></ul>

@@ -3,25 +3,26 @@ const SAMPLE = {
   cargo: "Desenvolvedora Back-end Pleno",
   email: "mariana.souza@email.com",
   telefone: "(48) 99999-0000",
-  cidade: "Florianópolis, SC",
+  uf: "SC",
+  cidade: "Florianópolis",
   linkedin: "linkedin.com/in/marianasouza",
   site: "github.com/marianasouza",
   resumo: "Desenvolvedora back-end com 5 anos de experiência em Python e Django, focada em APIs REST, integrações e performance de banco de dados. Liderei a migração de um monólito para serviços em AWS e reduzi o tempo médio de resposta em 40%. Busco atuar em produtos SaaS com times ágeis.",
   exp: [
-    { cargo: "Desenvolvedora Back-end", empresa: "Nuvem Tech", local: "Florianópolis, SC (híbrido)", inicio: "2022-03", fim: "", atual: true,
+    { cargo: "Desenvolvedora Back-end", empresa: "Nuvem Tech", local: "Florianópolis, SC", modalidade: "Híbrido", inicio: "03/2022", fim: "", atual: true,
       bullets: "Desenvolvi APIs REST em Django REST Framework usadas por 120 mil usuários ativos\nReduzi em 40% o tempo médio de resposta otimizando consultas PostgreSQL e adicionando cache Redis\nImplantei pipeline de CI/CD com GitHub Actions e Docker, cortando o tempo de deploy de 30 para 8 minutos" },
-    { cargo: "Desenvolvedora Júnior", empresa: "Agência Pixel", local: "Remoto", inicio: "2020-01", fim: "2022-02", atual: false,
+    { cargo: "Desenvolvedora Júnior", empresa: "Agência Pixel", local: "", modalidade: "Remoto", inicio: "01/2020", fim: "02/2022", atual: false,
       bullets: "Construí integrações com gateways de pagamento (Stripe, Pagar.me) em Python\nEscrevi testes automatizados com pytest, elevando a cobertura de 35% para 80%" }
   ],
   edu: [
-    { curso: "Bacharelado em Ciência da Computação", inst: "Universidade Federal de Santa Catarina (UFSC)", inicio: "2015-02", fim: "2019-12" }
+    { curso: "Bacharelado em Ciência da Computação", inst: "Universidade Federal de Santa Catarina (UFSC)", inicio: "02/2015", fim: "12/2019" }
   ],
   habilidades: "Python, Django, Django REST Framework, PostgreSQL, Redis, Docker, AWS, Git, CI/CD, Testes automatizados, Scrum",
   idiomas: "Português - Nativo\nInglês - Avançado",
   certificacoes: "AWS Certified Cloud Practitioner (2023)"
 };
-const EMPTY = { nome:"", cargo:"", email:"", telefone:"", cidade:"", linkedin:"", site:"", resumo:"",
-  exp:[{cargo:"",empresa:"",local:"",inicio:"",fim:"",atual:false,bullets:""}],
+const EMPTY = { nome:"", cargo:"", email:"", telefone:"", uf:"", cidade:"", linkedin:"", site:"", resumo:"",
+  exp:[{cargo:"",empresa:"",local:"",modalidade:"",inicio:"",fim:"",atual:false,bullets:""}],
   edu:[{curso:"",inst:"",inicio:"",fim:""}], habilidades:"", idiomas:"", certificacoes:"" };
 
 const KEY = "cv-legivel-v1";
@@ -29,11 +30,54 @@ let state, isExample = false;
 try { const s = localStorage.getItem(KEY); if (s) state = JSON.parse(s); } catch (e) {}
 if (!state) { state = structuredClone(SAMPLE); isExample = true; }
 
+const UFS = [["AC","Acre"],["AL","Alagoas"],["AP","Amapá"],["AM","Amazonas"],["BA","Bahia"],["CE","Ceará"],["DF","Distrito Federal"],
+  ["ES","Espírito Santo"],["GO","Goiás"],["MA","Maranhão"],["MT","Mato Grosso"],["MS","Mato Grosso do Sul"],["MG","Minas Gerais"],
+  ["PA","Pará"],["PB","Paraíba"],["PR","Paraná"],["PE","Pernambuco"],["PI","Piauí"],["RJ","Rio de Janeiro"],["RN","Rio Grande do Norte"],
+  ["RS","Rio Grande do Sul"],["RO","Rondônia"],["RR","Roraima"],["SC","Santa Catarina"],["SP","São Paulo"],["SE","Sergipe"],["TO","Tocantins"]];
+// dados salvos antes da separação UF/cidade tinham "Cidade, UF" num único campo
+if (state.uf === undefined) {
+  const m = /^(.*?),\s*([A-Za-z]{2})$/.exec((state.cidade || "").trim());
+  const uf = m && m[2].toUpperCase();
+  state.uf = uf && UFS.some(([s]) => s === uf) ? uf : "";
+  if (state.uf) state.cidade = m[1].trim();
+}
+const MODALIDADES = ["Presencial", "Híbrido", "Remoto"];
+// "Florianópolis, SC (híbrido)" ou "Remoto" num único campo viram local + modalidade
+for (const it of state.exp) {
+  if (it.modalidade !== undefined) continue;
+  const v = (it.local || "").trim(), find = s => MODALIDADES.find(m => m.toLowerCase() === s.toLowerCase().replace("hibrido", "híbrido"));
+  const paren = /^(.*?)\s*\(([^)]+)\)$/.exec(v), alone = find(v), inParen = paren && find(paren[2]);
+  it.modalidade = alone || inParen || "";
+  if (alone) it.local = "";
+  else if (inParen) it.local = paren[1];
+}
+// datas salvas em formatos anteriores ("2022-03" ou "15/03/2022") viram MM/AAAA
+for (const it of [...state.exp, ...state.edu]) for (const f of ["inicio", "fim"]) {
+  const v = it[f] || "", iso = /^(\d{4})-(\d{2})$/.exec(v), full = /^\d{2}\/(\d{2})\/(\d{4})$/.exec(v);
+  if (iso) it[f] = `${iso[2]}/${iso[1]}`;
+  else if (full) it[f] = `${full[1]}/${full[2]}`;
+}
+
 const $ = id => document.getElementById(id);
 const esc = s => String(s || "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 const lines = s => String(s || "").split("\n").map(l => l.replace(/^[\s•\-–*]+/, "").trim()).filter(Boolean);
-const fmtDate = v => { if (!v) return ""; const [y, m] = v.split("-"); return m ? `${m}/${y}` : y; };
+// MM/AAAA, formatando aos poucos enquanto digita
+const fmtDate = v => {
+  const d = String(v || "").replace(/\D/g, "").slice(0, 6);
+  return [d.slice(0, 2), d.slice(2)].filter(Boolean).join("/");
+};
+const isDate = v => { const m = /^(\d{2})\/\d{4}$/.exec(v || ""); return !!m && +m[1] >= 1 && +m[1] <= 12; };
+// "Florianópolis, SC (Híbrido)", ou só um dos dois
+const localModalidade = x => { const l = (x.local || "").trim(), m = x.modalidade || ""; return l && m ? `${l} (${m})` : l || m; };
 const period = (a, b, atual) => { const i = fmtDate(a), f = atual ? "Atual" : fmtDate(b); return i && f ? `${i} – ${f}` : (i || f); };
+// (48) 3333-4444 ou (48) 99618-7500, formatando aos poucos enquanto digita
+const fmtPhone = v => {
+  const d = String(v || "").replace(/\D/g, "").slice(0, 11);
+  if (!d) return "";
+  if (d.length <= 2) return `(${d}`;
+  const ddd = d.slice(0, 2), r = d.slice(2), cut = d.length === 11 ? 5 : 4;
+  return r.length <= 4 ? `(${ddd}) ${r}` : `(${ddd}) ${r.slice(0, cut)}-${r.slice(cut)}`;
+};
 
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
@@ -41,42 +85,119 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catc
 function bindSimple() {
   document.querySelectorAll("[data-k]").forEach(el => {
     el.value = state[el.dataset.k] || "";
-    el.addEventListener("input", () => { state[el.dataset.k] = el.value; changed(); });
+    if (el.dataset.k === "telefone") el.value = fmtPhone(el.value);
+    el.addEventListener("input", () => {
+      if (el.dataset.k === "telefone") maskInput(el, fmtPhone);
+      state[el.dataset.k] = el.value; changed();
+    });
   });
+}
+// reaplica a máscara mantendo o cursor depois do mesmo dígito
+function maskInput(el, fmt) {
+  const digitsBefore = el.value.slice(0, el.selectionStart).replace(/\D/g, "").length;
+  el.value = fmt(el.value);
+  let pos = 0, n = 0;
+  while (pos < el.value.length && n < digitsBefore) { if (/\d/.test(el.value[pos])) n++; pos++; }
+  el.setSelectionRange(pos, pos);
 }
 function renderLists() {
   $("expList").innerHTML = state.exp.map((x, i) => `
     <div class="item">
       <div class="item-head"><span>Experiência ${i + 1}</span>${state.exp.length > 1 ? `<button type="button" class="remove" data-rm="exp" data-i="${i}">Remover</button>` : ""}</div>
       <div class="row">
-        <label>Cargo<input id="exp-${i}-cargo" data-l="exp" data-i="${i}" data-f="cargo" value="${esc(x.cargo)}"></label>
-        <label>Empresa<input id="exp-${i}-empresa" data-l="exp" data-i="${i}" data-f="empresa" value="${esc(x.empresa)}"></label>
+        <label>Cargo<input id="exp-${i}-cargo" data-l="exp" data-i="${i}" data-f="cargo" value="${esc(x.cargo)}" placeholder="Ex.: Analista de Dados Júnior"><span class="hint">título de mercado, sem siglas internas</span></label>
+        <label>Empresa<input id="exp-${i}-empresa" data-l="exp" data-i="${i}" data-f="empresa" value="${esc(x.empresa)}" placeholder="Ex.: Supermercados Bom Preço"></label>
       </div>
       <div class="row">
-        <label>Local / modalidade<input id="exp-${i}-local" data-l="exp" data-i="${i}" data-f="local" value="${esc(x.local)}"></label>
-        <label>Início<input id="exp-${i}-inicio" type="month" data-l="exp" data-i="${i}" data-f="inicio" value="${esc(x.inicio)}"></label>
-        <label>Fim<input id="exp-${i}-fim" type="month" data-l="exp" data-i="${i}" data-f="fim" value="${esc(x.fim)}" ${x.atual ? "disabled" : ""}></label>
+        <label>Local<input id="exp-${i}-local" data-l="exp" data-i="${i}" data-f="local" value="${esc(x.local)}" placeholder="Cidade, UF ou país"></label>
+        <label>Modalidade<select id="exp-${i}-modalidade" data-l="exp" data-i="${i}" data-f="modalidade">
+          <option value="">Não informar</option>${MODALIDADES.map(m => `<option${m === x.modalidade ? " selected" : ""}>${m}</option>`).join("")}
+        </select></label>
       </div>
-      <label class="check"><input id="exp-${i}-atual" type="checkbox" data-l="exp" data-i="${i}" data-f="atual" ${x.atual ? "checked" : ""}> Trabalho aqui atualmente</label>
+      <div class="row dates">
+        <label>Início<input id="exp-${i}-inicio" inputmode="numeric" placeholder="MM/AAAA" data-l="exp" data-i="${i}" data-f="inicio" value="${esc(x.inicio)}"></label>
+        <label>Fim<input id="exp-${i}-fim" inputmode="numeric" placeholder="MM/AAAA" data-l="exp" data-i="${i}" data-f="fim" value="${esc(x.fim)}" ${x.atual ? "disabled" : ""}></label>
+        <label class="check"><input id="exp-${i}-atual" type="checkbox" data-l="exp" data-i="${i}" data-f="atual" ${x.atual ? "checked" : ""}> Trabalho aqui atualmente</label>
+      </div>
       <label>Conquistas <span class="hint">uma por linha; comece com verbo de ação e inclua números</span>
-        <textarea id="exp-${i}-bullets" rows="4" data-l="exp" data-i="${i}" data-f="bullets">${esc(x.bullets)}</textarea></label>
+        <textarea id="exp-${i}-bullets" rows="4" data-l="exp" data-i="${i}" data-f="bullets" placeholder="Ex.:&#10;Automatizei 12 relatórios semanais com Python e SQL, economizando 20 horas por mês da equipe financeira&#10;Criei painéis no Power BI usados por 15 gerentes de loja para acompanhar vendas diárias&#10;Reduzi em 35% os erros de cadastro implantando validações no processo de ETL">${esc(x.bullets)}</textarea></label>
     </div>`).join("");
   $("eduList").innerHTML = state.edu.map((x, i) => `
     <div class="item">
       <div class="item-head"><span>Formação ${i + 1}</span>${state.edu.length > 1 ? `<button type="button" class="remove" data-rm="edu" data-i="${i}">Remover</button>` : ""}</div>
       <div class="row">
-        <label>Curso / grau<input id="edu-${i}-curso" data-l="edu" data-i="${i}" data-f="curso" value="${esc(x.curso)}"></label>
-        <label>Instituição<input id="edu-${i}-inst" data-l="edu" data-i="${i}" data-f="inst" value="${esc(x.inst)}"></label>
+        <label>Curso / grau<input id="edu-${i}-curso" data-l="edu" data-i="${i}" data-f="curso" value="${esc(x.curso)}" placeholder="Ex.: Bacharelado em Administração"></label>
+        <label>Instituição<input id="edu-${i}-inst" data-l="edu" data-i="${i}" data-f="inst" value="${esc(x.inst)}" placeholder="Ex.: Universidade Federal do Paraná (UFPR)"><span class="hint">nome completo e sigla</span></label>
       </div>
-      <div class="row">
-        <label>Início<input id="edu-${i}-inicio" type="month" data-l="edu" data-i="${i}" data-f="inicio" value="${esc(x.inicio)}"></label>
-        <label>Conclusão (ou previsão)<input id="edu-${i}-fim" type="month" data-l="edu" data-i="${i}" data-f="fim" value="${esc(x.fim)}"></label>
+      <div class="row dates">
+        <label>Início<input id="edu-${i}-inicio" inputmode="numeric" placeholder="MM/AAAA" data-l="edu" data-i="${i}" data-f="inicio" value="${esc(x.inicio)}"></label>
+        <label>Conclusão (ou previsão)<input id="edu-${i}-fim" inputmode="numeric" placeholder="MM/AAAA" data-l="edu" data-i="${i}" data-f="fim" value="${esc(x.fim)}"></label>
       </div>
     </div>`).join("");
+  document.querySelectorAll("[data-l]").forEach(el => { if (isDateField(el)) markDate(el); });
+  autosizeAll();
 }
+// caixas de texto crescem junto com o conteúdo, sem barra de rolagem interna
+function autosize(el) {
+  if (!el.offsetParent) return; // escondida (aba de prévia no celular)
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+}
+const autosizeAll = () => document.querySelectorAll("textarea").forEach(autosize);
+document.addEventListener("input", e => { if (e.target.tagName === "TEXTAREA") autosize(e.target); });
+addEventListener("resize", autosizeAll);
+
+/* ---------- abas Editar / Prévia (só aparecem em telas estreitas) ---------- */
+document.querySelectorAll(".tabs [data-view]").forEach(tab => tab.addEventListener("click", () => {
+  $("grid").dataset.view = tab.dataset.view;
+  document.querySelectorAll(".tabs [data-view]").forEach(t => t.setAttribute("aria-selected", t === tab));
+  scrollTo({ top: 0 });
+  autosizeAll();
+}));
+const isDateField = el => el.dataset.f === "inicio" || el.dataset.f === "fim";
+// só acusa erro com a data completa (ex.: 13/2022), não enquanto digita
+const markDate = el => el.toggleAttribute("aria-invalid", el.value.length === 7 && !isDate(el.value));
+/* ---------- UF e cidade (lista de municípios do IBGE) ---------- */
+const cityCache = {};
+async function loadCities(uf) {
+  if (!cityCache[uf]) {
+    const r = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+    if (!r.ok) throw new Error(`IBGE ${r.status}`);
+    cityCache[uf] = (await r.json()).map(c => c.nome).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }
+  return cityCache[uf];
+}
+async function renderCities() {
+  const sel = $("cidade"), uf = state.uf;
+  sel.disabled = true;
+  if (!uf) { sel.innerHTML = `<option value="">Escolha a UF primeiro</option>`; return; }
+  sel.innerHTML = `<option value="">Carregando cidades…</option>`;
+  try {
+    const list = await loadCities(uf);
+    if (state.uf !== uf) return; // a UF mudou enquanto carregava
+    // mantém uma cidade salva que não esteja na lista (ex.: digitada sem acento na versão antiga)
+    const opts = state.cidade && !list.includes(state.cidade) ? [state.cidade, ...list] : list;
+    sel.innerHTML = `<option value="">Selecione a cidade</option>` + opts.map(c => `<option>${esc(c)}</option>`).join("");
+    sel.value = state.cidade || "";
+    sel.disabled = false;
+  } catch (e) {
+    if (state.uf !== uf) return;
+    sel.innerHTML = `<option value="">Não foi possível carregar</option>`;
+    $("status").textContent = "Não foi possível carregar a lista de cidades. Verifique a conexão e recarregue a página.";
+  }
+}
+function bindLocal() {
+  $("uf").innerHTML = `<option value="">Selecione</option>` + UFS.map(([s, n]) => `<option value="${s}">${s} — ${n}</option>`).join("");
+  $("uf").value = state.uf || "";
+  renderCities();
+}
+$("uf").addEventListener("change", e => { state.uf = e.target.value; state.cidade = ""; changed(); renderCities(); });
+$("cidade").addEventListener("change", e => { state.cidade = e.target.value; changed(); });
+
 document.addEventListener("input", e => {
   const el = e.target; if (!el.dataset.l) return;
   const it = state[el.dataset.l][+el.dataset.i];
+  if (isDateField(el)) { maskInput(el, fmtDate); markDate(el); }
   it[el.dataset.f] = el.type === "checkbox" ? el.checked : el.value;
   if (el.dataset.f === "atual") { const fim = $(`exp-${el.dataset.i}-fim`); fim.disabled = el.checked; }
   changed();
@@ -90,12 +211,13 @@ document.addEventListener("click", e => {
 /* ---------- modelo comum: a prévia e o PDF saem da mesma estrutura ---------- */
 function model() {
   const s = state;
-  const contato = [s.cidade, s.telefone, s.email, s.linkedin, s.site].map(v => (v || "").trim()).filter(Boolean);
+  const local = [s.cidade, s.uf].map(v => (v || "").trim()).filter(Boolean).join(", ");
+  const contato = [local, fmtPhone(s.telefone), s.email, s.linkedin, s.site].map(v => (v || "").trim()).filter(Boolean);
   const sections = [];
   if (s.resumo.trim()) sections.push({ t: "Resumo profissional", paras: [s.resumo.trim()] });
   const exp = s.exp.filter(x => x.cargo || x.empresa).map(x => ({
     title: x.cargo.trim(),
-    meta: [x.empresa, x.local, period(x.inicio, x.fim, x.atual)].map(v => (v || "").trim()).filter(Boolean).join(" | "),
+    meta: [x.empresa, localModalidade(x), period(x.inicio, x.fim, x.atual)].map(v => (v || "").trim()).filter(Boolean).join(" | "),
     bullets: lines(x.bullets)
   }));
   if (exp.length) sections.push({ t: "Experiência profissional", jobs: exp });
@@ -141,14 +263,14 @@ function renderChecks() {
     [!!s.cargo, "Cargo pretendido abaixo do nome"],
     [words >= 30 && words <= 90, `Resumo entre 30 e 90 palavras (agora: ${words})`],
     [m.skills.length >= 6, `Pelo menos 6 habilidades (agora: ${m.skills.length})`],
-    [s.exp.filter(x => x.cargo || x.empresa).every(x => x.inicio && (x.fim || x.atual)), "Toda experiência tem início e fim (MM/AAAA)"],
+    [s.exp.filter(x => x.cargo || x.empresa).every(x => isDate(x.inicio) && (x.atual || isDate(x.fim))), "Toda experiência tem início e fim (MM/AAAA)"],
     [bullets.length > 0 && bullets.filter(b => /\d/.test(b)).length >= Math.ceil(bullets.length / 2), "Metade ou mais das conquistas com números"],
     [bullets.length > 0 && bullets.every(b => VERBS.test(b)), "Conquistas começam com verbo de ação"],
     [bullets.every(b => b.length <= 220), "Conquistas com até 2 linhas cada"],
     [!!s.linkedin, "Link do LinkedIn"]
   ];
   const ok = checks.filter(c => c[0]).length;
-  $("score").textContent = `${ok}/${checks.length}`;
+  $("score").textContent = $("tabScore").textContent = `${ok}/${checks.length}`;
   $("checkList").innerHTML = checks.map(([v, t]) => `<li class="${v ? "ok" : "no"}">${esc(t)}</li>`).join("");
   $("resumoCount").textContent = `${words} palavras`;
 }
@@ -226,9 +348,28 @@ $("clearBtn").addEventListener("click", () => {
   if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Confirmar limpeza"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Limpar tudo"; }, 3000); return; }
   b.dataset.armed = ""; b.textContent = "Limpar tudo";
   state = structuredClone(EMPTY); isExample = false;
-  bindValues(); renderLists(); changed();
+  bindValues(); bindLocal(); renderLists(); changed();
 });
-function bindValues() { document.querySelectorAll("[data-k]").forEach(el => el.value = state[el.dataset.k] || ""); }
+/* ---------- tema claro/escuro ---------- */
+const THEME_KEY = "cv-legivel-tema";
+const darkMq = matchMedia("(prefers-color-scheme: dark)");
+const currentTheme = () => document.documentElement.dataset.theme || (darkMq.matches ? "dark" : "light");
+function renderThemeBtn() {
+  const dark = currentTheme() === "dark";
+  $("themeBtn").textContent = dark ? "☀ Tema claro" : "☾ Tema escuro";
+  $("themeBtn").setAttribute("aria-label", dark ? "Mudar para o tema claro" : "Mudar para o tema escuro");
+}
+$("themeBtn").addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  renderThemeBtn();
+});
+darkMq.addEventListener("change", renderThemeBtn);
+renderThemeBtn();
 
-bindSimple(); renderLists(); renderPreview(); renderChecks();
+function bindValues() { document.querySelectorAll("[data-k]").forEach(el => el.value = el.dataset.k === "telefone" ? fmtPhone(state.telefone) : state[el.dataset.k] || ""); }
+
+bindSimple(); bindLocal(); renderLists(); renderPreview(); renderChecks();
 $("exampleBadge").hidden = !isExample;
+document.fonts?.ready.then(autosizeAll); // a fonte web muda a altura das linhas
