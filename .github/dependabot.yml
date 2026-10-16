@@ -1,0 +1,15 @@
+# Abre PRs quando sair versão nova (ou correção de segurança) das dependências.
+# Depois de aceitar um PR de dependência do site, rode `npm run vendor` e faça commit de assets/vendor.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      ferramentas-de-desenvolvimento:
+        dependency-type: development
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
