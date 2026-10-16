@@ -69,7 +69,9 @@ form { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 fieldset { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 16px clamp(14px, 1.6vw, 20px) 18px; margin: 0; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 legend { font-family: var(--f-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); padding: 0 6px; font-weight: 500; }
 .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px 12px; align-items: start; }
-.row.dates { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); align-items: end; }
+.row.dates { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); }
+/* a caixa "atualmente" desce a altura do rótulo, para ficar na linha dos campos mesmo com mensagem de erro abaixo deles */
+.row.dates .check { padding-top: calc(0.82rem * 1.5 + 5px); min-height: calc(42px + 0.82rem * 1.5 + 5px); }
 label { display: flex; flex-direction: column; gap: 5px; font-size: 0.82rem; font-weight: 500; color: var(--muted); min-width: 0; }
 /* 16px nos campos evita o zoom automático do iPhone ao tocar no campo */
 input, textarea, select { font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%; min-height: 42px; }
@@ -86,6 +88,28 @@ textarea { resize: vertical; min-height: 88px; line-height: 1.45; }
 .item-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); min-height: 28px; }
 .remove { border: 0; background: none; color: var(--muted); font-size: 0.8rem; padding: 4px 6px; text-decoration: underline; }
 .remove:hover { color: var(--warn); }
+.check.order { align-items: flex-start; min-height: 0; border-top: 1px dashed var(--line); padding-top: 14px; }
+.check.order input { margin-top: 2px; }
+.check.order .hint { display: block; }
+
+/* mensagens abaixo do campo: aviso (some sozinho) ou erro (fica até corrigir) */
+.field-msg { font-size: 0.78rem; font-weight: 500; color: var(--muted); min-height: 0; }
+.field-msg:empty { display: none; }
+.field-msg.is-error { color: var(--warn); }
+
+/* bloco "Como preencher" de cada seção */
+.help { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 0.86rem; }
+.help summary { cursor: pointer; padding: 8px 12px; color: var(--accent); font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.help summary::-webkit-details-marker { display: none; }
+.help summary::before { content: "?"; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 0.72rem; flex: none; }
+.help summary::after { content: "▸"; margin-left: auto; transition: transform .15s; }
+.help[open] summary::after { transform: rotate(90deg); }
+.help ul { margin: 0; padding: 2px 14px 12px 32px; display: grid; gap: 6px; color: var(--fg); }
+.help li:has(> .good:first-child, > .bad:first-child) { list-style: none; }
+.help code { font-family: var(--f-mono); font-size: 0.85em; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+.good, .bad { display: inline; font-style: italic; }
+.good::before { content: "✔ "; color: var(--ok); font-style: normal; font-weight: 700; }
+.bad::before { content: "✘ "; color: var(--warn); font-style: normal; font-weight: 700; }
 .add { align-self: flex-start; border: 1px dashed var(--accent); background: none; color: var(--accent); padding: 8px 14px; min-height: 40px; font-weight: 500; font-size: 0.88rem; }
 
 /* ---------- coluna da prévia ---------- */
@@ -105,16 +129,19 @@ aside {
 
 /* a folha escala com a largura da coluna: 1.68cqi ≈ 10pt numa A4, a mesma proporção do PDF */
 .sheet-wrap { container-type: inline-size; flex: none; }
-.sheet { background: var(--paper); color: var(--paper-ink); aspect-ratio: 210 / 297; width: 100%; padding: 8.5%; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 12px 32px rgba(20,30,60,.12); font-family: Helvetica, Arial, sans-serif; font-size: 1.68cqi; line-height: 1.38; overflow-wrap: anywhere; }
-.sheet .nm { font-size: 2em; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
-.sheet .rl { font-size: 1.2em; margin: 0.15em 0 0.4em; }
-.sheet .ct { font-size: 0.95em; color: #333; margin: 0; word-break: break-word; }
-.sheet h3 { font-size: 1.1em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 0.6px solid #999; padding-bottom: 0.15em; margin: 1.2em 0 0.5em; }
+.sheet { background: var(--paper); color: var(--paper-ink); aspect-ratio: 210 / 297; width: 100%; padding: 8.5%; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 12px 32px rgba(20,30,60,.12); font-family: Helvetica, Arial, sans-serif; font-size: 1.68cqi; line-height: 1.25; color: #191919; overflow-wrap: anywhere; }
+/* tamanhos em em relativos ao corpo de 10pt, iguais aos do PDF */
+.sheet .nm { font-size: 2.4em; font-weight: 700; margin: 0; color: #0f0f0f; line-height: 1.15; }
+.sheet .rl { font-size: 1.25em; margin: 0.1em 0 0.25em; color: #3c3c3c; }
+.sheet .ct { font-size: 0.95em; color: #646464; margin: 0; word-break: break-word; }
+.sheet h3 { font-size: 1.15em; font-weight: 700; text-transform: uppercase; color: #0f0f0f; border-bottom: 0.7px solid #aaa; padding-bottom: 0.2em; margin: 1.45em 0 0.55em; }
 .sheet p { margin: 0 0 0.3em; }
-.sheet .jt { font-weight: 700; margin: 0.7em 0 0; }
-.sheet .jm { color: #444; margin: 0 0 0.25em; font-size: 0.95em; }
-.sheet ul { margin: 0; padding-left: 1.2em; }
-.sheet li { margin: 0 0 0.15em; }
+.sheet .jt { font-weight: 700; font-size: 1.05em; margin: 0.75em 0 0; color: #0f0f0f; }
+.sheet h3 + .jt { margin-top: 0; }
+.sheet .jm { color: #6e6e6e; margin: 0 0 0.3em; font-size: 0.95em; }
+.sheet ul { margin: 0; padding-left: 1.15em; }
+.sheet li { margin: 0 0 0.15em; padding-left: 0.2em; }
+.sheet li b { color: #0f0f0f; }
 .status { font-size: 0.85rem; color: var(--muted); min-height: 1.3em; flex: none; }
 
 /* ---------- celular e tablet ---------- */

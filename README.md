@@ -18,6 +18,10 @@ Grande parte dos currículos passa primeiro por um software antes de chegar a um
 - **Formatação automática enquanto você digita.** Telefone vira `(48) 99618-7500` e datas viram `MM/AAAA`, no campo e no PDF.
 - **UF e cidade em listas**, com todos os municípios do Brasil carregados da [API de localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades) conforme a UF escolhida.
 - **Local e modalidade separados** em cada experiência (Presencial, Híbrido ou Remoto), saindo como `Florianópolis, SC (Híbrido)` no PDF.
+- **Formação com situação** (Concluído, Em andamento, Trancado), saindo como `Início: 07/2025 – Previsão de conclusão: 07/2029` quando em andamento, e opção de **mostrar a formação antes da experiência** (para estudantes e estagiários).
+- **Habilidades por categoria e idiomas com rótulo em negrito**: `Front-end: HTML, CSS` vira "**Front-end:** HTML, CSS" no PDF.
+- **Restrições e validações por campo**: o nome aceita só letras; o local não aceita números; os cargos aceitam termos como "C++" e ".NET"; e-mail, LinkedIn e telefone são validados; as datas não podem ter o fim antes do início nem um término no futuro. As mensagens aparecem logo abaixo do campo.
+- **"Como preencher" em cada seção**, com orientação curta e exemplos ✔ bons e ✘ ruins.
 - **Exemplos em todos os campos**, escritos seguindo boas práticas para ATS e leitura por IA: título de cargo de mercado, conquistas com verbo de ação e números, nomes oficiais de instituições e certificações.
 - **Rascunho salvo automaticamente** no `localStorage`. Os dados do currículo não saem do seu navegador.
 - **Tema claro e escuro**, seguindo o sistema ou escolhido no botão do topo (a escolha fica salva).

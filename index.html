@@ -35,29 +35,47 @@
   </nav>
 
   <div class="grid" id="grid" data-view="form">
-    <form id="form" autocomplete="on">
+    <form id="form" autocomplete="on" novalidate>
       <fieldset>
         <legend>Dados pessoais</legend>
+        <details class="help">
+          <summary>Como preencher</summary>
+          <ul>
+            <li><b>Cargo pretendido:</b> copie o título da vaga. <span class="good">Analista de Dados Pleno</span> <span class="bad">Profissional em busca de oportunidade</span></li>
+            <li><b>E-mail:</b> de preferência no formato nome.sobrenome, sem apelidos.</li>
+            <li><b>LinkedIn e portfólio:</b> pode colar o link inteiro, ele é ajustado automaticamente.</li>
+            <li><b>Não inclua</b> foto, CPF, RG, estado civil, idade ou endereço completo. Não são pedidos em currículo e expõem seus dados.</li>
+          </ul>
+        </details>
         <div class="row">
-          <label>Nome completo<input id="nome" data-k="nome" placeholder="Ex.: Ana Paula Ribeiro"></label>
-          <label>Cargo pretendido<input id="cargo" data-k="cargo" placeholder="Ex.: Analista de Dados Pleno"><span class="hint">igual ao título da vaga</span></label>
+          <label>Nome completo<input id="nome" data-k="nome" autocomplete="name" placeholder="Ex.: Ana Paula Ribeiro"><span class="hint">só letras; sem apelidos</span></label>
+          <label>Cargo pretendido<input id="cargo" data-k="cargo" autocomplete="organization-title" placeholder="Ex.: Analista de Dados Pleno"><span class="hint">igual ao título da vaga</span></label>
         </div>
         <div class="row">
-          <label>E-mail<input id="email" data-k="email" type="email" placeholder="Ex.: ana.ribeiro@email.com"></label>
-          <label>Telefone<input id="telefone" data-k="telefone" type="tel" inputmode="numeric" placeholder="(48) 99999-0000"></label>
+          <label>E-mail<input id="email" data-k="email" type="email" autocomplete="email" placeholder="Ex.: ana.ribeiro@email.com"></label>
+          <label>Telefone<input id="telefone" data-k="telefone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="(48) 99999-0000"></label>
         </div>
         <div class="row">
           <label>UF<select id="uf"></select></label>
           <label>Cidade<select id="cidade" disabled></select></label>
         </div>
         <div class="row">
-          <label>LinkedIn<input id="linkedin" data-k="linkedin" placeholder="linkedin.com/in/seu-perfil"></label>
-          <label>Portfólio / GitHub<input id="site" data-k="site" placeholder="Ex.: github.com/anaribeiro"></label>
+          <label>LinkedIn<input id="linkedin" data-k="linkedin" inputmode="url" autocapitalize="off" placeholder="linkedin.com/in/seu-perfil"></label>
+          <label>Portfólio / GitHub (opcional)<input id="site" data-k="site" inputmode="url" autocapitalize="off" placeholder="Ex.: github.com/anaribeiro"></label>
         </div>
       </fieldset>
 
       <fieldset>
         <legend>Resumo profissional</legend>
+        <details class="help">
+          <summary>Como preencher</summary>
+          <ul>
+            <li>Use 2 a 4 frases nesta ordem: <b>quem você é</b> + anos de experiência, <b>principais ferramentas</b>, <b>um resultado</b> com número e <b>o que você busca</b>.</li>
+            <li><span class="good">Analista de dados com 4 anos de experiência em SQL e Power BI. Automatizei relatórios que economizaram 20 horas por mês.</span></li>
+            <li><span class="bad">Sou uma pessoa proativa, dinâmica e comunicativa.</span> Adjetivos genéricos não dizem o que você faz.</li>
+            <li><b>Sem experiência?</b> Fale do curso, de projetos e do que você quer aprender.</li>
+          </ul>
+        </details>
         <label>2 a 4 frases: quem você é, anos de experiência, especialidade e o que entrega
           <textarea id="resumo" data-k="resumo" rows="4" placeholder="Ex.: Analista de dados com 4 anos de experiência em SQL, Python e Power BI no varejo. Automatizei relatórios que economizaram 20 horas por mês da equipe financeira. Busco atuar como Analista de Dados Pleno em empresas orientadas a dados."></textarea>
           <span class="hint" id="resumoCount"></span>
@@ -66,22 +84,51 @@
 
       <fieldset>
         <legend>Experiência profissional</legend>
+        <details class="help">
+          <summary>Como preencher</summary>
+          <ul>
+            <li>Comece pela experiência <b>mais recente</b>. Estágio, freelance e trabalho voluntário também contam.</li>
+            <li><b>Conquistas:</b> verbo no passado + o que você fez + ferramenta + resultado com número.</li>
+            <li><span class="good">Reduzi em 30% o tempo de atendimento implantando um novo fluxo no Zendesk</span></li>
+            <li><span class="bad">Responsável pelo atendimento ao cliente</span> Descreve a função, não o resultado.</li>
+            <li><b>Não tem o número exato?</b> Use uma estimativa honesta: "cerca de 50 clientes por mês".</li>
+          </ul>
+        </details>
         <div id="expList"></div>
         <button type="button" class="add" data-add="exp">+ Adicionar experiência</button>
       </fieldset>
 
       <fieldset>
         <legend>Formação acadêmica</legend>
+        <details class="help">
+          <summary>Como preencher</summary>
+          <ul>
+            <li>Escreva o tipo e o nome do curso: <span class="good">Bacharelado em Ciência da Computação</span> <span class="bad">BCC</span></li>
+            <li>Instituição com o nome completo e a sigla entre parênteses.</li>
+            <li><b>Ainda estudando?</b> Escolha "Em andamento" e informe a previsão de conclusão.</li>
+            <li>Inclua o ensino médio só se for a sua formação mais alta.</li>
+          </ul>
+        </details>
         <div id="eduList"></div>
         <button type="button" class="add" data-add="edu">+ Adicionar formação</button>
+        <label class="check order"><input type="checkbox" id="formacaoPrimeiro"> <span>Mostrar formação antes da experiência <span class="hint">indicado para estudantes, estagiários e quem está mudando de área</span></span></label>
       </fieldset>
 
       <fieldset>
         <legend>Habilidades, idiomas e certificações</legend>
-        <label>Habilidades técnicas <span class="hint">separe por vírgula; use os mesmos termos da vaga</span>
-          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="Ex.: SQL, Python, Power BI, Excel avançado, ETL, Modelagem de dados, Scrum, Comunicação com stakeholders"></textarea></label>
-        <label>Idiomas <span class="hint">um por linha: idioma - nível</span>
-          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="Ex.:&#10;Inglês - Avançado&#10;Espanhol - Intermediário"></textarea></label>
+        <details class="help">
+          <summary>Como preencher</summary>
+          <ul>
+            <li><b>Habilidades:</b> uma categoria por linha, no formato <code>Categoria: itens separados por vírgula</code>. A categoria sai em negrito no currículo.</li>
+            <li>Use <b>os mesmos termos da vaga</b>: se ela pede "Power BI", não escreva só "BI".</li>
+            <li><b>Idiomas:</b> <code>Idioma: nível</code>. Níveis: básico, intermediário, avançado, fluente ou nativo. Seja honesto, o nível pode ser testado na entrevista.</li>
+            <li><b>Certificações:</b> nome oficial e ano. Cursos curtos só se tiverem relação com a vaga.</li>
+          </ul>
+        </details>
+        <label>Habilidades <span class="hint">uma categoria por linha: Categoria: itens</span>
+          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="Ex.:&#10;Análise de dados: SQL, Python, Power BI, Excel avançado&#10;Metodologias: Scrum, Kanban&#10;Competências: comunicação com stakeholders, organização"></textarea></label>
+        <label>Idiomas <span class="hint">um por linha: Idioma: nível</span>
+          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="Ex.:&#10;Inglês: avançado&#10;Espanhol: intermediário"></textarea></label>
         <label>Certificações e cursos <span class="hint">um por linha, com o nome oficial e o ano</span>
           <textarea id="certificacoes" data-k="certificacoes" rows="2" placeholder="Ex.:&#10;Microsoft Certified: Power BI Data Analyst Associate (2024)&#10;Google Data Analytics Professional Certificate (2023)"></textarea></label>
       </fieldset>
