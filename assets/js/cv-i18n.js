@@ -65,10 +65,11 @@ export const FORM_LABEL = {
   status: CV_TEXT.pt.status
 };
 
-// Verbos de ação no passado, por idioma, para a checagem "conquistas começam com verbo".
-// Comparação feita pelo começo da frase, sem acentos e em minúsculas.
-export const ACTION_VERBS = {
-  pt: "desenvolvi criei liderei implantei implementei reduzi aumentei construi escrevi gerenciei coordenei projetei automatizei otimizei migrei entreguei conduzi melhorei elevei lancei mantive integrei analisei treinei negociei organizei planejei estruturei atuei participei apoiei responsavel desenhei defini resolvi monitorei documentei atendi vendi prospectei contribui corrigi apresentei acompanhei capacitei administrei executei realizei elaborei",
-  en: "developed built created led implemented reduced increased designed managed coordinated automated optimized migrated delivered improved launched maintained integrated analyzed trained negotiated organized planned wrote resolved monitored documented supported sold achieved drove established streamlined mentored owned shipped",
-  es: "desarrolle cree lidere implemente reduje aumente construi disene gestione coordine automatice optimice migre entregue mejore lance mantuve integre analice capacite negocie organice planifique escribi resolvi monitoree documente atendi vendi logre impulse"
+// Verbos de ação no passado. Os regulares são reconhecidos pela terminação (ver checks.js):
+// "-ei"/"-i" em português (criei, desenvolvi, abri), "-ed" em inglês, "-é"/"-í" em espanhol.
+// Aqui ficam só os irregulares, escritos sem acento e em minúsculas.
+export const IRREGULAR_VERBS = {
+  pt: "fiz fui tive obtive mantive detive contive pus propus compus dispus trouxe dei estive pude quis vim conduzi reduzi produzi introduzi traduzi",
+  en: "built led wrote made ran won grew drove sold taught began brought bought chose did found gave held kept left met paid put read rose saw set spoke spent stood took thought told understood became broke cut drew fought got oversaw overtook rebuilt rewrote undertook upheld went",
+  es: "hice fui tuve obtuve mantuve puse propuse traje di estuve pude quise vine conduje reduje produje introduje traduje"
 };

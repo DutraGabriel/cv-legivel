@@ -14,6 +14,33 @@ export const lines = (s) =>
     .map((l) => l.replace(/^[\s•\-–*]+/, "").trim())
     .filter(Boolean);
 
+const MARKER = /^\s*(?:[•▪◦●\-–*]|\d{1,2}[.)])\s+/;
+
+/**
+ * Conquistas: uma por linha, mas junta as linhas que são continuação da anterior.
+ * Texto colado de um PDF chega com quebras no meio da frase; sem isso, cada pedaço
+ * viraria uma "conquista" separada no currículo e na checagem.
+ * É continuação a linha que começa com letra minúscula ou, quando o texto usa
+ * marcadores ("•", "-", "1."), a linha que não começa com marcador.
+ */
+export const bulletLines = (s) => {
+  const raw = String(s ?? "")
+    .split("\n")
+    .filter((l) => l.trim());
+  const usesMarkers = raw.some((l) => MARKER.test(l));
+  const out = [];
+  for (const l of raw) {
+    const text = l
+      .replace(MARKER, "")
+      .replace(/^[\s•\-–*]+/, "")
+      .trim();
+    const continuation = out.length && (/^\p{Ll}/u.test(text) || (usesMarkers && !MARKER.test(l)));
+    if (continuation) out[out.length - 1] += ` ${text}`;
+    else out.push(text);
+  }
+  return out.filter(Boolean);
+};
+
 /**
  * "Front-end: HTML, CSS" → { label: "Front-end", text: "HTML, CSS" }.
  * Com `dash`, também aceita "Inglês - Avançado" (formato antigo dos idiomas).

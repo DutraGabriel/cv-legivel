@@ -4,7 +4,7 @@
 // - Bibliotecas pesadas (jsPDF, pdf.js, fonte Unicode): guardadas no primeiro uso.
 // - Lista de cidades do IBGE: rede primeiro, cache como reserva.
 // Ao mudar qualquer arquivo listado em SHELL, aumente VERSION (o teste unitário confere a lista).
-const VERSION = "v2.0.0";
+const VERSION = "v2.0.1";
 const CACHE = `cv-legivel-${VERSION}`;
 
 const SHELL = [

@@ -90,7 +90,7 @@ function expItem(x, i, total) {
         <label>Fim${input("exp", i, "fim", x.fim, `inputmode="numeric" placeholder="MM/AAAA"${x.atual ? " disabled" : ""}`)}</label>
         <label class="check"><input id="exp-${i}-atual" type="checkbox" data-l="exp" data-i="${i}" data-f="atual"${x.atual ? " checked" : ""}> Trabalho aqui atualmente</label>
       </div>
-      <label>Conquistas <span class="hint">uma por linha: verbo de ação + o que fez + resultado com número</span>
+      <label>Conquistas <span class="hint">uma por linha: verbo no passado (Desenvolvi, Criei, Reduzi) + o que fez + resultado com número</span>
         <textarea id="exp-${i}-bullets" rows="4" data-l="exp" data-i="${i}" data-f="bullets" maxlength="${maxFor("bullets")}" placeholder="Ex.:&#10;Automatizei 12 relatórios semanais com Python e SQL, economizando 20 horas por mês da equipe financeira&#10;Criei painéis no Power BI usados por 15 gerentes de loja para acompanhar vendas diárias&#10;Reduzi em 35% os erros de cadastro implantando validações no processo de ETL">${esc(x.bullets)}</textarea></label>
     </div>`;
 }

@@ -1,7 +1,7 @@
 // Transforma o estado do formulário na estrutura do currículo.
 // A prévia (HTML) e o PDF desenham a partir desta mesma estrutura: o que se vê é o que sai no arquivo.
 import { CV_TEXT } from "./cv-i18n.js";
-import { fmtDate, fmtPhone, labeled, lines } from "./format.js";
+import { bulletLines, fmtDate, fmtPhone, labeled, lines } from "./format.js";
 
 const PAIS = { en: "Brazil", es: "Brasil" };
 const join = (parts, sep = " | ") =>
@@ -52,7 +52,7 @@ export function model(s) {
     .map((x) => ({
       title: x.cargo.trim(),
       meta: join([x.empresa, localModalidade(x, t), period(x.inicio, x.fim, x.atual, t)]),
-      bullets: lines(x.bullets)
+      bullets: bulletLines(x.bullets)
     }));
   const edu = s.edu
     .filter((x) => x.curso.trim() || x.inst.trim())
