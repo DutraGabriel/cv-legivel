@@ -87,6 +87,26 @@ npm start          # abre em http://localhost:8000
 
 Não há variáveis de ambiente nem segredos.
 
+## Testes e integração contínua
+
+| Camada | O que cobre | Ferramenta |
+| --- | --- | --- |
+| Unitários (28) | Máscaras e datas, validação e migração do rascunho, modelo do currículo, checagem ATS, comparação com a vaga, regras dos campos e consistência do projeto (versões em `assets/vendor`, lista offline do `sw.js`, CSP) | `node --test` |
+| Ponta a ponta (10) | Abre o site num navegador real, preenche o formulário, **gera o PDF e confere o texto extraído dele** (ordem das seções, links, inglês, fonte Unicode), validações, exportar/importar, rascunho corrompido e abas no celular | Playwright + pdf.js |
+
+O [CI no GitHub Actions](.github/workflows/ci.yml) roda em todo push e pull request na `main` e na `develop`, em dois jobs:
+
+1. **Lint, formatação e testes unitários**: ESLint, html-validate, Prettier, `npm test` e `npm audit`.
+2. **Testes de ponta a ponta**: instala o Chromium e roda o Playwright; em caso de falha, guarda o relatório como artefato.
+
+Usa Node.js 24 e `ubuntu-24.04` fixo, para o ambiente não mudar sem aviso. Também dá para rodar manualmente em **Actions → CI → Run workflow**. O Dependabot abre PRs semanais para as dependências npm e mensais para as actions.
+
+## Fluxo de desenvolvimento
+
+- O trabalho acontece na branch `develop`; a `main` recebe as mudanças por merge e é a branch publicada no GitHub Pages.
+- Commits seguem o [Conventional Commits](https://www.conventionalcommits.org/pt-br/) (`feat:`, `fix:`, `docs:`, `ci:`…).
+- Antes de enviar, `npm run check` roda lint, formatação e testes unitários; `npm run test:e2e` roda os testes no navegador.
+
 ## Estrutura
 
 ```text
@@ -125,6 +145,7 @@ O site não tem etapa de build, então as bibliotecas usadas no navegador ficam 
 - A comparação com a vaga é uma heurística (termos técnicos, siglas e palavras repetidas), não uma IA: serve como lembrete, não como nota oficial.
 - Árabe, hindi, chinês e outras escritas não latinas/cirílicas não são suportadas no PDF.
 - A lista de cidades depende da API do IBGE (precisa de internet no primeiro uso de cada UF).
+- Antivírus que inspecionam páginas HTTPS (como o Kaspersky) podem injetar código e alterar a Content-Security-Policy. A política do site termina com `;` para continuar válida mesmo assim, mas, se algo não carregar, teste com essa proteção desativada.
 
 ## Próximos passos
 
