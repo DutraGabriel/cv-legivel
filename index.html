@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>CV Legível — currículos que o ATS consegue ler</title>
+  <meta name="description" content="Gerador de currículo em PDF de coluna única, com texto real e seções padrão, otimizado para ATS e triagem por IA.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>CV Legível</h1>
+      <p class="sub">Preencha o formulário e gere um PDF de coluna única, com texto real e títulos padrão, que sistemas de triagem (ATS) e leitores de RH com IA conseguem interpretar sem perder informação.</p>
+    </div>
+    <div class="actions">
+      <span id="exampleBadge" class="badge" hidden>Dados de exemplo</span>
+      <button type="button" class="btn" id="clearBtn">Limpar tudo</button>
+      <button type="button" class="btn-primary" id="pdfBtn">Gerar PDF</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <form id="form" autocomplete="on">
+      <fieldset>
+        <legend>Dados pessoais</legend>
+        <div class="row">
+          <label>Nome completo<input id="nome" data-k="nome"></label>
+          <label>Cargo pretendido<input id="cargo" data-k="cargo"></label>
+        </div>
+        <div class="row">
+          <label>E-mail<input id="email" data-k="email" type="email"></label>
+          <label>Telefone<input id="telefone" data-k="telefone" type="tel"></label>
+        </div>
+        <div class="row">
+          <label>Cidade / UF<input id="cidade" data-k="cidade"></label>
+          <label>LinkedIn<input id="linkedin" data-k="linkedin" placeholder="linkedin.com/in/seu-perfil"></label>
+          <label>Portfólio / GitHub<input id="site" data-k="site"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Resumo profissional</legend>
+        <label>2 a 4 frases: quem você é, anos de experiência, especialidade e o que entrega
+          <textarea id="resumo" data-k="resumo" rows="4"></textarea>
+          <span class="hint" id="resumoCount"></span>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Experiência profissional</legend>
+        <div id="expList"></div>
+        <button type="button" class="add" data-add="exp">+ Adicionar experiência</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Formação acadêmica</legend>
+        <div id="eduList"></div>
+        <button type="button" class="add" data-add="edu">+ Adicionar formação</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Habilidades, idiomas e certificações</legend>
+        <label>Habilidades técnicas <span class="hint">separe por vírgula; use os mesmos termos da vaga</span>
+          <textarea id="habilidades" data-k="habilidades" rows="3"></textarea></label>
+        <label>Idiomas <span class="hint">um por linha, ex.: Inglês - Avançado</span>
+          <textarea id="idiomas" data-k="idiomas" rows="2"></textarea></label>
+        <label>Certificações e cursos <span class="hint">um por linha</span>
+          <textarea id="certificacoes" data-k="certificacoes" rows="2"></textarea></label>
+      </fieldset>
+    </form>
+
+    <aside>
+      <div class="checks">
+        <h2><span>Checagem para ATS</span><span id="score"></span></h2>
+        <ul id="checkList"></ul>
+      </div>
+      <div class="sheet-wrap"><div class="sheet" id="sheet" aria-label="Prévia do currículo"></div></div>
+      <div class="status" id="status" role="status"></div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>
