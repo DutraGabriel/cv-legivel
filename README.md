@@ -1,84 +1,137 @@
 # CV Legível
 
-Gerador de currículo que roda direto no navegador. Você preenche um formulário e baixa um PDF pensado para ser lido por **ATS** (Applicant Tracking Systems), os sistemas de triagem automática, e por ferramentas de RH baseadas em IA.
+[![CI](https://github.com/DutraGabriel/cv-legivel/actions/workflows/ci.yml/badge.svg)](https://github.com/DutraGabriel/cv-legivel/actions/workflows/ci.yml)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
+![Sem build](https://img.shields.io/badge/build-nenhum-success)
+![Dados](https://img.shields.io/badge/dados-ficam%20no%20navegador-informational)
 
-**[▶ Usar online](https://DutraGabriel.github.io/cv-legivel/)**
+Gerador de currículo que roda inteiro no navegador. Você preenche um formulário e baixa um PDF que **sistemas de triagem (ATS) e leitores de RH com IA conseguem ler sem perder informação**: coluna única, texto real, títulos padrão.
 
-![Tela do CV Legível: formulário à esquerda, checagem ATS e prévia A4 à direita](docs/screenshot.png)
+**[▶ Usar online](https://dutragabriel.github.io/cv-legivel/)** · grátis, sem cadastro, funciona offline
 
-## Por que existe
+![Tela do CV Legível: formulário à esquerda; privacidade, checagem ATS, comparação com a vaga e prévia A4 à direita](docs/screenshot.png)
 
-Grande parte dos currículos passa primeiro por um software antes de chegar a uma pessoa. Layouts com duas colunas, tabelas, ícones ou texto dentro de imagens costumam ser lidos fora de ordem ou simplesmente ignorados. O CV Legível gera um PDF que fica bonito para quem lê e continua fácil de interpretar para quem faz o parsing.
+## Destaques técnicos
 
-## Funcionalidades
+- **Zero build, zero framework.** HTML, CSS e JavaScript modular (ES modules) servidos direto pelo GitHub Pages.
+- **O que você vê é o que sai no PDF.** Uma única função, `model()`, transforma o formulário na estrutura do currículo; a prévia HTML e o gerador de PDF só desenham essa estrutura.
+- **Testado onde importa.** Os testes de ponta a ponta geram o PDF num navegador real, **extraem o texto do arquivo** com pdf.js e conferem a ordem das seções, os links e os acentos, exatamente o que um ATS faz.
+- **Privacidade e segurança por padrão.** Nenhum dado sai do navegador, todas as bibliotecas e fontes são servidas pelo próprio site e uma Content-Security-Policy bloqueia scripts de qualquer outra origem.
 
-- **Prévia ao vivo** em folha A4, atualizada enquanto você digita.
-- **PDF com texto real**, gerado com [jsPDF](https://github.com/parallax/jsPDF). Não é print de tela nem imagem.
-- **Checagem ATS em tempo real.** Mostra se o resumo tem tamanho adequado, se as conquistas trazem números e começam com verbo de ação, se as datas estão completas, entre outros pontos.
-- **Formatação automática enquanto você digita.** Telefone vira `(48) 99618-7500` e datas viram `MM/AAAA`, no campo e no PDF.
-- **UF e cidade em listas**, com todos os municípios do Brasil carregados da [API de localidades do IBGE](https://servicodados.ibge.gov.br/api/docs/localidades) conforme a UF escolhida.
-- **Local e modalidade separados** em cada experiência (Presencial, Híbrido ou Remoto), saindo como `Florianópolis, SC (Híbrido)` no PDF.
-- **Formação com situação** (Concluído, Em andamento, Trancado), saindo como `Início: 07/2025 – Previsão de conclusão: 07/2029` quando em andamento, e opção de **mostrar a formação antes da experiência** (para estudantes e estagiários).
-- **Habilidades por categoria e idiomas com rótulo em negrito**: `Front-end: HTML, CSS` vira "**Front-end:** HTML, CSS" no PDF.
-- **Restrições e validações por campo**: o nome aceita só letras; o local não aceita números; os cargos aceitam termos como "C++" e ".NET"; e-mail, LinkedIn e telefone são validados; as datas não podem ter o fim antes do início nem um término no futuro. As mensagens aparecem logo abaixo do campo.
-- **"Como preencher" em cada seção**, com orientação curta e exemplos ✔ bons e ✘ ruins.
-- **Exemplos em todos os campos**, escritos seguindo boas práticas para ATS e leitura por IA: título de cargo de mercado, conquistas com verbo de ação e números, nomes oficiais de instituições e certificações.
-- **Rascunho salvo automaticamente** no `localStorage`. Os dados do currículo não saem do seu navegador.
-- **Tema claro e escuro**, seguindo o sistema ou escolhido no botão do topo (a escolha fica salva).
-- **Layout que aproveita a tela toda**: no computador, formulário e prévia lado a lado, com a prévia acompanhando a rolagem; em telas muito largas, o formulário se divide em duas colunas; no celular e no tablet, abas **Editar** e **Prévia e checagem**.
-- **Zero build.** HTML, CSS e JavaScript puros.
+## O que ele faz
+
+### Para montar o currículo
+
+- Prévia ao vivo em folha A4, com a mesma proporção do PDF.
+- Exemplos e um bloco **"Como preencher"** em cada seção, com exemplos ✔ bons e ✘ ruins.
+- Máscaras enquanto digita (telefone `(48) 99618-7500`, datas `MM/AAAA`), UF e cidade com os municípios do IBGE, local e modalidade (presencial, híbrido, remoto), situação da formação e opção de mostrar a formação antes da experiência.
+- Restrições e validações por campo, com mensagens logo abaixo do campo: nome só com letras, e-mail e LinkedIn válidos, fim da experiência não pode ser antes do início etc.
+
+### Para passar na triagem
+
+- **Checagem ATS em tempo real**: tamanho do resumo, conquistas com números e verbos de ação, datas completas e mais.
+- **Comparar com uma vaga**: cole a descrição e veja quais termos técnicos dela faltam no seu currículo.
+- **Ver como o ATS lê**: mostra o texto extraído do PDF gerado, na ordem em que um sistema de triagem o lê.
+- **Currículo em português, inglês ou espanhol** (títulos, "Atual"/"Present", modalidade, nome do arquivo).
+- PDF com **links clicáveis** (e-mail, LinkedIn, portfólio), idioma e metadados definidos, e fonte Unicode embutida automaticamente quando o nome tem letras como `ł`, `ş` ou cirílico.
+
+### Para os seus dados
+
+- Rascunho salvo automaticamente no navegador; **exportar/importar em JSON** para levar a outro computador.
+- **Limpar tudo** apaga o formulário e a cópia salva (útil em computador compartilhado).
+- Instalável como app (PWA) e **funciona offline** depois do primeiro acesso.
+- Tema claro e escuro, layout para celular, tablet e telas largas, navegação completa por teclado.
+
+## Privacidade e segurança
+
+| Ponto | Como é tratado |
+| --- | --- |
+| Dados do currículo | Ficam só no `localStorage` do navegador. Não há servidor, banco, cadastro nem analytics. |
+| Terceiros | Nenhuma CDN ou Google Fonts: jsPDF, pdf.js e as fontes são servidos pelo próprio site. A única chamada externa é a API do IBGE, que recebe só a sigla da UF. |
+| XSS | Todo texto digitado passa por `esc()` antes de ir para o HTML; a CSP (`script-src 'self'`) bloqueia scripts inline e de outras origens. |
+| Rascunho corrompido | `normalize()` valida o formato do que foi salvo; um rascunho quebrado nunca trava o site. |
+| Dependências | `npm audit` no CI e Dependabot semanal. |
 
 ## Decisões de formatação para ATS
 
 | Decisão | Motivo |
-|---|---|
-| Coluna única, sem tabelas nem ícones | Parsers leem de cima para baixo. Colunas lado a lado embaralham a ordem do texto. |
+| --- | --- |
+| Coluna única, sem tabelas nem ícones | Parsers leem de cima para baixo; colunas lado a lado embaralham a ordem do texto. |
 | Títulos de seção padrão ("Experiência profissional", "Formação acadêmica"…) | É assim que os sistemas identificam cada bloco. Títulos criativos não são reconhecidos. |
 | Contato no corpo, não em cabeçalho/rodapé | Muitos ATS descartam cabeçalhos e rodapés do PDF. |
-| Datas no formato `MM/AAAA – MM/AAAA` | Formato consistente permite calcular o tempo de experiência. O dia não é pedido, porque não é relevante num currículo. |
-| Telefone com DDD no formato `(DD) 9XXXX-XXXX` | Padrão brasileiro reconhecido por parsers e fácil de ler. |
-| Local e modalidade no mesmo padrão em todas as experiências | Facilita filtros por cidade e por trabalho remoto ou presencial. |
-| Fonte padrão (Helvetica) | Garante a extração correta de acentos e caracteres. |
-| Metadados do PDF (título, autor, palavras-chave) | Dá contexto extra para indexação. |
-| Nome do arquivo `Nome-Sobrenome-Curriculo.pdf` | Facilita a identificação pelo recrutador. |
-
-Para validar, você pode extrair o texto do PDF gerado (por exemplo com `pdftotext` ou `pypdf`). Ele sai na mesma ordem e com a mesma estrutura da prévia.
+| Datas no formato `MM/AAAA – MM/AAAA` | Formato consistente permite calcular o tempo de experiência. |
+| Helvetica, com Arimo embutida quando preciso | A Helvetica padrão do PDF cobre o português e o alfabeto latino ocidental. Para outros caracteres o site embute a Arimo, que tem as mesmas medidas, então o layout não muda. |
+| Texto contínuo por trecho de estilo | Palavras de mesmo estilo saem num único bloco de texto, para a extração não quebrar palavras. |
+| Metadados e idioma do PDF | Dão contexto extra para indexação e leitores de tela. |
 
 ## Como rodar localmente
+
+Requer [Node.js](https://nodejs.org/) 20 ou mais recente.
 
 ```bash
 git clone https://github.com/DutraGabriel/cv-legivel.git
 cd cv-legivel
-python3 -m http.server 8000   # ou abra o index.html direto no navegador
+npm install
+npm start          # abre em http://localhost:8000
 ```
 
-Depois acesse `http://localhost:8000`.
+> O `index.html` não abre com duplo clique: o navegador bloqueia módulos JavaScript em `file://`. Use `npm start` ou qualquer servidor estático (`python3 -m http.server 8000`).
 
-É preciso ter internet para carregar as fontes, a biblioteca de PDF (jsPDF, via CDN) e a lista de cidades do IBGE. Sem conexão, o formulário funciona, mas o botão **Gerar PDF** e a lista de cidades não.
+| Comando | O que faz |
+| --- | --- |
+| `npm run lint` | ESLint no JavaScript e html-validate no HTML |
+| `npm run format` | Formata o código com Prettier |
+| `npm test` | Testes unitários (`node --test`, sem dependências) |
+| `npm run test:e2e` | Testes de ponta a ponta com Playwright (usa o Chrome instalado) |
+| `npm run vendor` | Copia jsPDF, pdf.js e fontes de `node_modules` para `assets/vendor/` |
+
+Não há variáveis de ambiente nem segredos.
 
 ## Estrutura
 
-```
+```text
 cv-legivel/
-├── index.html            # marcação do formulário e da prévia
+├── index.html                 marcação, CSP e meta tags
+├── sw.js                      service worker (modo offline)
 ├── assets/
-│   ├── css/styles.css    # tokens de cor, tema claro/escuro, layout
-│   └── js/app.js         # estado, máscaras, UF/cidade, prévia, checagem ATS e PDF
-└── docs/screenshot.png
+│   ├── css/                   estilos e fontes
+│   ├── js/
+│   │   ├── main.js            ponto de entrada: liga os módulos
+│   │   ├── state.js           formato, exemplo, validação e migração do rascunho
+│   │   ├── model.js           formulário → estrutura do currículo (usada pela prévia e pelo PDF)
+│   │   ├── pdf.js             geração do PDF (jsPDF carregado sob demanda)
+│   │   ├── checks.js          checagem ATS
+│   │   ├── jobmatch.js        comparação com a vaga
+│   │   ├── rules.js           restrições e validações
+│   │   ├── format.js          máscaras e utilitários puros
+│   │   ├── cv-i18n.js         textos do currículo em PT, EN e ES
+│   │   └── ui/                módulos que mexem na página (formulário, prévia, ferramentas…)
+│   └── vendor/                bibliotecas e fontes de terceiros (geradas por `npm run vendor`)
+├── tests/
+│   ├── unit/                  funções puras, estado, consistência do projeto
+│   └── e2e/                   navegador real + extração do texto do PDF
+└── scripts/vendor.mjs
 ```
 
-A prévia em HTML e o PDF saem da **mesma função `model()`**. Ela normaliza os dados do formulário em seções, e os dois renderizadores apenas desenham essa estrutura. Assim, o que você vê é o que vai para o PDF.
+Os módulos da raiz de `assets/js/` são **puros** (não tocam no DOM) e por isso são testados direto no Node; os de `ui/` cuidam da página.
 
-Rascunhos salvos por versões anteriores são convertidos ao carregar a página: `"Florianópolis, SC"` é separado em UF e cidade, `"Florianópolis, SC (híbrido)"` em local e modalidade, e datas `2022-03` viram `03/2022`.
+### Atualizando dependências
+
+O site não tem etapa de build, então as bibliotecas usadas no navegador ficam versionadas em `assets/vendor/`. Ao atualizar uma delas (por exemplo, num PR do Dependabot), rode `npm run vendor` e faça commit da pasta. Um teste unitário falha se os arquivos copiados não forem da versão do `package.json`.
+
+## Limitações conhecidas
+
+- A interface está em português; o idioma escolhido muda só o currículo gerado.
+- A comparação com a vaga é uma heurística (termos técnicos, siglas e palavras repetidas), não uma IA: serve como lembrete, não como nota oficial.
+- Árabe, hindi, chinês e outras escritas não latinas/cirílicas não são suportadas no PDF.
+- A lista de cidades depende da API do IBGE (precisa de internet no primeiro uso de cada UF).
 
 ## Próximos passos
 
-- [ ] Comparar o currículo com a descrição de uma vaga e destacar as palavras-chave ausentes
-- [ ] Importar e exportar os dados em JSON
-- [ ] Versão em inglês do currículo
+- [ ] Interface traduzida (além do currículo)
 - [ ] Mais de um modelo visual, todos compatíveis com ATS
-- [ ] Testes automatizados da geração do PDF
+- [ ] Sugestões de verbos de ação ao escrever as conquistas
 
 ## Licença
 
-[MIT](LICENSE)
+[MIT](LICENSE) © Gabriel Dutra
