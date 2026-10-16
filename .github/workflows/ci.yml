@@ -12,7 +12,7 @@ permissions:
 jobs:
   qualidade:
     name: Lint, formatação e testes unitários
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # fixo: evita mudança de ambiente sem aviso (ubuntu-latest vai para o 26)
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -28,7 +28,7 @@ jobs:
 
   e2e:
     name: Testes de ponta a ponta (PDF real)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # fixo: evita mudança de ambiente sem aviso (ubuntu-latest vai para o 26)
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
