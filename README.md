@@ -16,6 +16,8 @@ Gerador de currículo que roda inteiro no navegador. Você preenche um formulár
 - **Zero build, zero framework.** HTML, CSS e JavaScript modular (ES modules) servidos direto pelo GitHub Pages.
 - **O que você vê é o que sai no PDF.** Uma única função, `model()`, transforma o formulário na estrutura do currículo; a prévia HTML e o gerador de PDF só desenham essa estrutura.
 - **Testado onde importa.** Os testes de ponta a ponta geram o PDF num navegador real, **extraem o texto do arquivo** com pdf.js e conferem a ordem das seções, os links e os acentos, exatamente o que um ATS faz.
+- **Três idiomas sem framework de i18n.** Um único modelo HTML e um arquivo de textos por idioma geram páginas estáticas em português, inglês e espanhol, já traduzidas e indexáveis; testes garantem que os três idiomas têm as mesmas chaves e que as páginas geradas estão em dia.
+- **Acessível e verificado.** Navegação por teclado, mensagens anunciadas a leitores de tela e um teste automático com axe-core (WCAG 2.1 AA) nas três páginas, nos temas claro e escuro.
 - **Privacidade e segurança por padrão.** Nenhum dado sai do navegador, todas as bibliotecas e fontes são servidas pelo próprio site e uma Content-Security-Policy bloqueia scripts de qualquer outra origem.
 
 ## O que ele faz
@@ -167,6 +169,7 @@ O site não tem etapa de build, então as bibliotecas usadas no navegador ficam 
 
 - [ ] Mais de um modelo visual, todos compatíveis com ATS
 - [ ] Sugestões de verbos de ação ao escrever as conquistas
+- [ ] Opção de datas com o nome do mês (ex.: `Mar 2022`), comum em currículos em inglês
 
 ## Licença
 
