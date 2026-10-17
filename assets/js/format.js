@@ -85,12 +85,13 @@ export const fmtPhone = (v) => {
   return r.length <= 4 ? `(${ddd}) ${r}` : `(${ddd}) ${r.slice(0, cut)}-${r.slice(cut)}`;
 };
 
-/** "https://www.linkedin.com/in/fulano/?trk=x" → "linkedin.com/in/fulano". */
+/** "https://www.linkedin.com/in/fulano/?trk=x" ou "es.linkedin.com/in/fulano" → "linkedin.com/in/fulano". */
 export const cleanUrl = (v) =>
   String(v ?? "")
     .trim()
     .replace(/^https?:\/\//i, "")
     .replace(/^www\./i, "")
+    .replace(/^[a-z]{2}\.(?=linkedin\.com\/)/i, "") // prefixo de país do LinkedIn
     .replace(/[?#].*$/, "")
     .replace(/\/+$/, "");
 

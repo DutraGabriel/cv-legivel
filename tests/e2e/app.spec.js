@@ -50,17 +50,96 @@ test("PDF tem texto real, na ordem certa, com links clicáveis", async ({ page }
   );
 });
 
-test("idioma do currículo em inglês muda títulos, datas e nome do arquivo", async ({ page }) => {
-  await open(page);
-  await page.selectOption("#cvLang", "en");
-  await expect(page.locator("#sheet h3").first()).toHaveText("Professional summary");
+test("página em inglês: interface, exemplo, PDF e nome do arquivo em inglês", async ({ page }) => {
+  await open(page, "/en/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("legend").first()).toHaveText("Personal details");
+  await expect(page.locator("#pdfBtn")).toHaveText("Download PDF");
+  await expect(page.locator("label", { hasText: "Country" }).locator("select")).toHaveValue("BR");
+  await expect(page.locator("#checkList")).toContainText("Summary between 30 and 90 words");
   const { name, buffer } = await downloadPdf(page);
   expect(name).toBe("Mariana-Souza-Resume.pdf");
   const { text } = await pdfText(buffer);
-  expect(text).toContain("WORK EXPERIENCE");
-  expect(text).toContain("03/2022 – Present");
-  expect(text).toContain("(Hybrid)");
-  expect(text).toContain("Florianópolis, SC, Brazil");
+  for (const s of ["WORK EXPERIENCE", "03/2022 – Present", "(Hybrid)", "Florianópolis, Brazil", "+55 48 99999-0000"]) {
+    expect(text).toContain(s);
+  }
+});
+
+test("página em espanhol: interface e currículo em espanhol", async ({ page }) => {
+  await open(page, "/es/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(page.locator("#pdfBtn")).toHaveText("Generar PDF");
+  await expect(page.locator("#sheet h3").nth(1)).toHaveText("Experiencia profesional");
+  await page.fill("#telefone", "612");
+  await page.locator("#telefone").blur();
+  await expect(page.locator("#telefone-msg")).toContainText("incluye el código del país");
+});
+
+test("navegador em inglês vê um aviso em inglês; a escolha vale nas próximas visitas", async ({ browser }) => {
+  const context = await browser.newContext({ locale: "en-US" });
+  const page = await context.newPage();
+  await page.route("https://servicodados.ibge.gov.br/**", (r) => r.fulfill({ json: [] }));
+  await page.goto("/");
+  // sem escolha salva, não redireciona sozinho (bom para buscadores): só sugere
+  await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+  const aviso = page.locator("#langSuggest");
+  await expect(aviso).toBeVisible();
+  await expect(aviso).toHaveAttribute("lang", "en");
+  await expect(aviso).toContainText("This site is also available in English.");
+  await aviso.getByRole("link", { name: "Switch to English" }).click();
+  await expect(page).toHaveURL(/\/en\/$/);
+  await expect(page.locator("#langSuggest")).toBeHidden(); // já está no idioma do navegador
+  // com a escolha salva, a raiz leva direto ao inglês
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/en\/$/);
+  // escolher português no seletor também vale para as próximas visitas
+  await page.click('[data-lang-link="pt"]');
+  await expect(page).toHaveURL(/127\.0\.0\.1:4173\/$/);
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+  await expect(page.locator("#langSuggest")).toBeHidden();
+  await context.close();
+});
+
+test('"Agora não" no aviso de idioma não volta a aparecer', async ({ browser }) => {
+  const context = await browser.newContext({ locale: "es-ES" });
+  const page = await context.newPage();
+  await page.route("https://servicodados.ibge.gov.br/**", (r) => r.fulfill({ json: [] }));
+  await page.goto("/en/");
+  await expect(page.locator("#langSuggest")).toContainText("Este sitio también está en español.");
+  await page.getByRole("button", { name: "Ahora no" }).click();
+  await expect(page.locator("#langSuggest")).toBeHidden();
+  await page.reload();
+  await expect(page.locator("#langSuggest")).toBeHidden();
+  await context.close();
+});
+
+test("importar na página em inglês um arquivo exportado em português", async ({ page }) => {
+  await open(page);
+  const download = page.waitForEvent("download");
+  await page.click("#exportBtn");
+  const file = await (await download).path();
+  await open(page, "/en/");
+  await page.setInputFiles("#importFile", file);
+  await expect(page.locator("#telefone")).toHaveValue("+55 48 99999-0000");
+  await expect(page.locator("#pais")).toHaveValue("BR");
+  await expect(page.locator("#telefone")).not.toHaveAttribute("aria-invalid");
+});
+
+test("cada idioma tem seu rascunho e oferece copiar de outro", async ({ page }) => {
+  await open(page);
+  await page.fill("#nome", "Ana Português");
+  await open(page, "/en/");
+  await expect(page.locator("#nome")).toHaveValue("Mariana Souza"); // exemplo em inglês, não o rascunho pt
+  await expect(page.locator("#copyOffer")).toBeVisible();
+  await expect(page.locator("#copyTitle")).toHaveText("You already have a resume in Portuguese");
+  await page.click("#copyActions button >> nth=0");
+  await expect(page.locator("#nome")).toHaveValue("Ana Português");
+  await expect(page.locator("#pais")).toHaveValue("BR");
+  await expect(page.locator("#telefone")).toHaveValue("+55 48 99999-0000");
+  await expect(page.locator("#copyOffer")).toBeHidden();
+  await open(page, "/");
+  await expect(page.locator("#nome")).toHaveValue("Ana Português");
 });
 
 test("nomes com letras fora do latim ocidental saem corretos (fonte Unicode)", async ({ page }) => {
@@ -100,7 +179,7 @@ test("exportar e importar devolvem os mesmos dados", async ({ page }) => {
   await open(page);
   await page.fill("#nome", "Teste Exportação");
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#exportBtn")]);
-  expect(dl.suggestedFilename()).toBe("cv-legivel-dados.json");
+  expect(dl.suggestedFilename()).toBe("cv-legivel-pt.json");
   const file = await dl.path();
 
   await page.click("#clearBtn");

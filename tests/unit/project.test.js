@@ -1,6 +1,6 @@
 // Testes de consistência do projeto: pegam esquecimentos comuns antes de chegarem ao site publicado.
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const read = (p) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
@@ -20,8 +20,11 @@ test("todos os arquivos da lista offline (sw.js) existem", () => {
 
 test("todo módulo JS do site está na lista offline", () => {
   const shell = read("sw.js");
-  const modules = [...read("assets/js/main.js").matchAll(/from "\.\/([^"]+)"/g)].map((m) => `assets/js/${m[1]}`);
-  for (const m of modules) assert.ok(shell.includes(`"${m}"`), `${m} não está no sw.js`);
+  const walk = (dir) =>
+    readdirSync(new URL(`../../${dir}`, import.meta.url), { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walk(`${dir}/${e.name}`) : e.name.endsWith(".js") ? [`${dir}/${e.name}`] : []
+    );
+  for (const m of walk("assets/js")) assert.ok(shell.includes(`"${m}"`), `${m} não está no sw.js`);
 });
 
 test("index.html tem CSP restrita e não carrega nada de CDNs", () => {

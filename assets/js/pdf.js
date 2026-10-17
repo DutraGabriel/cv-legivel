@@ -2,10 +2,10 @@
 // As fontes padrão do PDF (Helvetica) só cobrem o alfabeto latino ocidental (Windows-1252);
 // quando o texto tem algo fora disso (ł, ş, ă, cirílico...), embutimos a Arimo, que tem as
 // mesmas medidas da Helvetica, então o layout não muda.
+import { DICTS, t } from "./i18n/index.js";
 import { plainText } from "./model.js";
 
 const VENDOR = new URL("../vendor/", import.meta.url);
-const LANG_TAG = { pt: "pt-BR", en: "en-US", es: "es-ES" };
 
 // tudo o que a Helvetica padrão do PDF consegue escrever
 const WIN1252 = /^[\n\r\t\x20-\x7E\xA0-\xFF€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]*$/;
@@ -196,7 +196,7 @@ export function buildPdf(m, jsPDF, fontFiles = null) {
     (sec.list || []).forEach(item);
   }
 
-  doc.setLanguage(LANG_TAG[m.lang] || "pt-BR");
+  doc.setLanguage((DICTS[m.lang] || DICTS.pt).meta.locale);
   doc.setProperties({
     title: `${m.t.doc} - ${m.nome || m.t.nomePadrao}`,
     subject: m.cargo || m.t.doc,
@@ -212,7 +212,7 @@ export async function generatePdf(m, onStatus = () => {}) {
   const jsPDF = await loadJsPDF();
   let fontFiles = null;
   if (needsUnicodeFont(plainText(m))) {
-    onStatus("Baixando a fonte para caracteres especiais…");
+    onStatus(t("stFont", {}, m.lang));
     fontFiles = await loadUnicodeFont();
   }
   return buildPdf(m, jsPDF, fontFiles);

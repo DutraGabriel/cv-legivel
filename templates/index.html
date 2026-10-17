@@ -1,0 +1,206 @@
+<!doctype html>
+<!-- MODELO: `npm run pages` gera index.html (pt), en/index.html e es/index.html a partir deste arquivo.
+     Chaves duplas = texto escapado; chaves triplas = HTML; os blocos marcados com #pt e #intl
+     só entram na página em português ou nas internacionais. -->
+<html lang="{{meta.htmlLang}}" data-lang="{{lang}}" data-langs="{{langs}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Content-Security-Policy: só scripts, estilos e fontes do próprio site; a única conexão externa é a API do IBGE -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://servicodados.ibge.gov.br; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>{{meta.title}}</title>
+  <meta name="description" content="{{meta.description}}">
+  <link rel="canonical" href="{{url}}">
+{{hreflang}}
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="{{meta.ogLocale}}">
+  <meta property="og:title" content="{{meta.title}}">
+  <meta property="og:description" content="{{meta.ogDescription}}">
+  <meta property="og:url" content="{{url}}">
+  <meta property="og:image" content="{{site}}{{meta.ogImage}}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{meta.ogAlt}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2d47a8">
+  <link rel="icon" href="{{root}}assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{root}}assets/icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="{{root}}assets/css/fonts.css">
+  <link rel="stylesheet" href="{{root}}assets/css/styles.css">
+  <script src="{{root}}assets/js/boot.js"></script>
+  <script src="{{root}}assets/js/main.js" type="module"></script>
+</head>
+<body>
+<a class="skip" href="#form">{{ui.skip}}</a>
+<noscript><p class="noscript">{{ui.noscript}}</p></noscript>
+<div class="wrap">
+  <!-- sugestão de idioma: preenchida por main.js, no idioma do navegador (ver suggestLang em ui/chrome.js) -->
+  <div class="lang-suggest" id="langSuggest" hidden></div>
+  <header class="top">
+    <div>
+      <h1>CV Legível</h1>
+      <p class="sub">{{ui.sub}}</p>
+    </div>
+    <div class="actions">
+      <span id="exampleBadge" class="badge" hidden>{{ui.badge}}</span>
+{{langNav}}
+      <button type="button" class="btn" id="themeBtn">{{ui.themeBtn}}</button>
+      <button type="button" class="btn-primary" id="pdfBtn">{{ui.pdf}}</button>
+    </div>
+  </header>
+
+  <main>
+  <div class="tabs" role="tablist" aria-label="{{ui.tabsAria}}">
+    <button type="button" role="tab" id="tabForm" data-view="form" aria-controls="form" aria-selected="true">{{ui.tabEdit}}</button>
+    <button type="button" role="tab" id="tabPreview" data-view="preview" aria-controls="preview" aria-selected="false" tabindex="-1">{{ui.tabPreview}}<span class="score" id="tabScore"></span></button>
+  </div>
+
+  <div class="grid" id="grid" data-view="form">
+    <form id="form" role="tabpanel" aria-labelledby="tabForm" autocomplete="on" novalidate>
+      <div class="card copy-offer" id="copyOffer" role="group" aria-labelledby="copyTitle" hidden>
+        <p class="copy-title" id="copyTitle"></p>
+        <p>{{ui.copyText}}</p>
+        <div class="card-actions" id="copyActions"></div>
+      </div>
+
+      <fieldset>
+        <legend>{{ui.legPersonal}}</legend>
+        <details class="help">
+          <summary>{{ui.help}}</summary>
+          <ul>
+            {{{help.personal}}}
+          </ul>
+        </details>
+        <div class="row">
+          <label>{{ui.fNome}}<input type="text" id="nome" data-k="nome" autocomplete="name" placeholder="{{ui.pNome}}"><span class="hint">{{ui.hNome}}</span></label>
+          <label>{{ui.fCargo}}<input type="text" id="cargo" data-k="cargo" autocomplete="organization-title" placeholder="{{ui.pCargo}}"><span class="hint">{{ui.hCargo}}</span></label>
+        </div>
+        <div class="row">
+          <label>{{ui.fEmail}}<input id="email" data-k="email" type="email" autocomplete="email" placeholder="{{ui.pEmail}}"></label>
+<!--#pt-->
+          <label>{{ui.fTel}}<input id="telefone" data-k="telefone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="{{ui.pTel}}"></label>
+<!--/pt-->
+<!--#intl-->
+          <label>{{ui.fTel}}<input id="telefone" data-k="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="{{ui.pTel}}"></label>
+<!--/intl-->
+        </div>
+        <div class="row">
+<!--#pt-->
+          <label>{{ui.fUf}}<select id="uf"></select></label>
+          <label>{{ui.fCidade}}<select id="cidade" disabled></select></label>
+<!--/pt-->
+<!--#intl-->
+          <label>{{ui.fPais}}<select id="pais" data-k="pais" autocomplete="country"></select></label>
+          <label>{{ui.fCidade}}<input type="text" id="cidade" data-k="cidade" autocomplete="address-level2" placeholder="{{ui.pCidade}}"></label>
+<!--/intl-->
+        </div>
+        <div class="row">
+          <label>{{ui.fLinkedin}}<input type="text" id="linkedin" data-k="linkedin" inputmode="url" autocapitalize="off" placeholder="{{ui.pLinkedin}}"></label>
+          <label>{{ui.fSite}}<input type="text" id="site" data-k="site" inputmode="url" autocapitalize="off" placeholder="{{ui.pSite}}"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ui.legSummary}}</legend>
+        <details class="help">
+          <summary>{{ui.help}}</summary>
+          <ul>
+            {{{help.summary}}}
+          </ul>
+        </details>
+        <label>{{ui.fResumo}}
+          <textarea id="resumo" data-k="resumo" rows="4" placeholder="{{ui.pResumo}}"></textarea>
+          <span class="hint" id="resumoCount"></span>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ui.legExp}}</legend>
+        <details class="help">
+          <summary>{{ui.help}}</summary>
+          <ul>
+            {{{help.exp}}}
+          </ul>
+        </details>
+        <div id="expList"></div>
+        <button type="button" class="add" data-add="exp">{{ui.addExp}}</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ui.legEdu}}</legend>
+        <details class="help">
+          <summary>{{ui.help}}</summary>
+          <ul>
+            {{{help.edu}}}
+          </ul>
+        </details>
+        <div id="eduList"></div>
+        <button type="button" class="add" data-add="edu">{{ui.addEdu}}</button>
+        <label class="check order"><input type="checkbox" id="formacaoPrimeiro"> <span>{{ui.order}} <span class="hint">{{ui.orderHint}}</span></span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ui.legSkills}}</legend>
+        <details class="help">
+          <summary>{{ui.help}}</summary>
+          <ul>
+            {{{help.skills}}}
+          </ul>
+        </details>
+        <label>{{ui.fHab}} <span class="hint">{{ui.hHab}}</span>
+          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="{{ui.pHab}}"></textarea></label>
+        <label>{{ui.fIdi}} <span class="hint">{{ui.hIdi}}</span>
+          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="{{ui.pIdi}}"></textarea></label>
+        <label>{{ui.fCert}} <span class="hint">{{ui.hCert}}</span>
+          <textarea id="certificacoes" data-k="certificacoes" rows="2" placeholder="{{ui.pCert}}"></textarea></label>
+      </fieldset>
+    </form>
+
+    <aside id="preview" role="tabpanel" aria-labelledby="tabPreview">
+      <section class="card privacy" aria-labelledby="privacyTitle">
+        <h2 id="privacyTitle">{{ui.privacyTitle}}</h2>
+        <p>{{ui.privacyText}}</p>
+        <div class="card-actions">
+          <button type="button" class="btn small" id="exportBtn">{{ui.exportBtn}}</button>
+          <button type="button" class="btn small" id="importBtn">{{ui.importBtn}}</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button type="button" class="btn small danger" id="clearBtn">{{ui.clearBtn}}</button>
+        </div>
+      </section>
+
+      <section class="checks" aria-labelledby="checksTitle">
+        <h2 id="checksTitle"><span>{{ui.checksTitle}}</span><span id="score"></span></h2>
+        <ul id="checkList"></ul>
+      </section>
+
+      <details class="card job">
+        <summary>{{ui.jobTitle}}</summary>
+        <label>{{ui.jobLabel}} <span class="hint">{{ui.jobHint}}</span>
+          <textarea id="vaga" rows="4" maxlength="15000" placeholder="{{ui.jobPh}}"></textarea></label>
+        <div id="jobResult" aria-live="polite"></div>
+      </details>
+
+      <div class="sheet-bar">
+        <span>{{ui.sheetBar}}</span>
+        <button type="button" class="btn small" id="atsBtn">{{ui.atsBtn}}</button>
+      </div>
+      <div class="sheet-wrap"><section class="sheet" id="sheet" aria-label="{{ui.sheetAria}}"></section></div>
+      <div class="status" id="status" role="status"></div>
+    </aside>
+  </div>
+  </main>
+</div>
+
+<dialog id="atsDialog" aria-labelledby="atsTitle">
+  <div class="dialog-head">
+    <h2 id="atsTitle">{{ui.atsTitle}}</h2>
+    <button type="button" class="btn small" id="atsClose">{{ui.atsClose}}</button>
+  </div>
+  <p class="hint">{{ui.atsHint}}</p>
+  <pre id="atsText"></pre>
+</dialog>
+<div id="live" class="sr-only" aria-live="polite"></div>
+</body>
+</html>

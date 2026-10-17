@@ -1,0 +1,219 @@
+<!doctype html>
+<!-- Gerado por scripts/pages.mjs a partir de templates/index.html. Não edite este arquivo. -->
+<html lang="es" data-lang="es" data-langs="pt en es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Content-Security-Policy: só scripts, estilos e fontes do próprio site; a única conexão externa é a API do IBGE -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://servicodados.ibge.gov.br; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>CV Legível — currículums que los ATS pueden leer</title>
+  <meta name="description" content="Generador gratuito de currículum en PDF de una sola columna, con texto real y secciones estándar, optimizado para sistemas de selección (ATS) y filtros con IA. Tus datos no salen del navegador.">
+  <link rel="canonical" href="https://dutragabriel.github.io/cv-legivel/es/">
+  <link rel="alternate" hreflang="pt-BR" href="https://dutragabriel.github.io/cv-legivel/">
+  <link rel="alternate" hreflang="en" href="https://dutragabriel.github.io/cv-legivel/en/">
+  <link rel="alternate" hreflang="es" href="https://dutragabriel.github.io/cv-legivel/es/">
+  <link rel="alternate" hreflang="x-default" href="https://dutragabriel.github.io/cv-legivel/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="CV Legível — currículums que los ATS pueden leer">
+  <meta property="og:description" content="Crea un currículum en PDF que los sistemas de selección (ATS) y la IA pueden leer, con revisión en tiempo real y comparación con la oferta. Gratis y sin registro.">
+  <meta property="og:url" content="https://dutragabriel.github.io/cv-legivel/es/">
+  <meta property="og:image" content="https://dutragabriel.github.io/cv-legivel/docs/og-image-es.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Pantalla de CV Legível: formulario, revisión ATS y vista previa del currículum en A4">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2d47a8">
+  <link rel="icon" href="../assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="../assets/css/fonts.css">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <script src="../assets/js/boot.js"></script>
+  <script src="../assets/js/main.js" type="module"></script>
+</head>
+<body>
+<a class="skip" href="#form">Ir al formulario</a>
+<noscript><p class="noscript">CV Legível necesita JavaScript para crear el currículum. Activa JavaScript en este sitio y recarga la página.</p></noscript>
+<div class="wrap">
+  <!-- sugestão de idioma: preenchida por main.js, no idioma do navegador (ver suggestLang em ui/chrome.js) -->
+  <div class="lang-suggest" id="langSuggest" hidden></div>
+  <header class="top">
+    <div>
+      <h1>CV Legível</h1>
+      <p class="sub">Completa el formulario y genera un PDF de una sola columna, con texto real y títulos estándar, que los sistemas de selección (ATS) y las herramientas de RR. HH. con IA pueden interpretar sin perder información.</p>
+    </div>
+    <div class="actions">
+      <span id="exampleBadge" class="badge" hidden>Datos de ejemplo</span>
+      <nav class="langs" aria-label="Idioma"><a href="../" hreflang="pt-BR" lang="pt-BR" data-lang-link="pt" title="Português"><span aria-hidden="true">PT</span><span class="sr-only">Português</span></a><a href="../en/" hreflang="en" lang="en" data-lang-link="en" title="English"><span aria-hidden="true">EN</span><span class="sr-only">English</span></a><a href="../es/" hreflang="es" lang="es" data-lang-link="es" title="Español" aria-current="page"><span aria-hidden="true">ES</span><span class="sr-only">Español</span></a></nav>
+      <button type="button" class="btn" id="themeBtn">Tema</button>
+      <button type="button" class="btn-primary" id="pdfBtn">Generar PDF</button>
+    </div>
+  </header>
+
+  <main>
+  <div class="tabs" role="tablist" aria-label="Alternar entre formulario y vista previa">
+    <button type="button" role="tab" id="tabForm" data-view="form" aria-controls="form" aria-selected="true">Editar</button>
+    <button type="button" role="tab" id="tabPreview" data-view="preview" aria-controls="preview" aria-selected="false" tabindex="-1">Vista previa y revisión<span class="score" id="tabScore"></span></button>
+  </div>
+
+  <div class="grid" id="grid" data-view="form">
+    <form id="form" role="tabpanel" aria-labelledby="tabForm" autocomplete="on" novalidate>
+      <div class="card copy-offer" id="copyOffer" role="group" aria-labelledby="copyTitle" hidden>
+        <p class="copy-title" id="copyTitle"></p>
+        <p>Copia esos datos aquí y solo traduce los textos, o empieza con el ejemplo.</p>
+        <div class="card-actions" id="copyActions"></div>
+      </div>
+
+      <fieldset>
+        <legend>Datos personales</legend>
+        <details class="help">
+          <summary>Cómo completar</summary>
+          <ul>
+            <li><b>Puesto al que aspiras:</b> copia el título de la oferta. <span class="good">Analista de Datos Semi Senior</span> <span class="bad">Profesional en busca de oportunidades</span></li>
+            <li><b>Correo:</b> preferiblemente nombre.apellido, sin apodos.</li>
+            <li><b>LinkedIn y portafolio:</b> puedes pegar el enlace completo, se ajusta automáticamente.</li>
+            <li><b>No incluyas</b> foto, DNI, estado civil, edad ni dirección completa. No se piden en un currículum y exponen tus datos.</li>
+          </ul>
+        </details>
+        <div class="row">
+          <label>Nombre completo<input type="text" id="nome" data-k="nome" autocomplete="name" placeholder="Ej.: Ana Martínez"><span class="hint">solo letras; sin apodos</span></label>
+          <label>Puesto al que aspiras<input type="text" id="cargo" data-k="cargo" autocomplete="organization-title" placeholder="Ej.: Analista de Datos Semi Senior"><span class="hint">igual al título de la oferta</span></label>
+        </div>
+        <div class="row">
+          <label>Correo electrónico<input id="email" data-k="email" type="email" autocomplete="email" placeholder="Ej.: ana.martinez@email.com"></label>
+          <label>Teléfono<input id="telefone" data-k="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej.: +34 612 345 678"></label>
+        </div>
+        <div class="row">
+          <label>País<select id="pais" data-k="pais" autocomplete="country"></select></label>
+          <label>Ciudad<input type="text" id="cidade" data-k="cidade" autocomplete="address-level2" placeholder="Ej.: Madrid"></label>
+        </div>
+        <div class="row">
+          <label>LinkedIn<input type="text" id="linkedin" data-k="linkedin" inputmode="url" autocapitalize="off" placeholder="linkedin.com/in/tu-perfil"></label>
+          <label>Portafolio / GitHub (opcional)<input type="text" id="site" data-k="site" inputmode="url" autocapitalize="off" placeholder="Ej.: github.com/anamartinez"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Resumen profesional</legend>
+        <details class="help">
+          <summary>Cómo completar</summary>
+          <ul>
+            <li>Usa de 2 a 4 frases en este orden: <b>quién eres</b> + años de experiencia, <b>principales herramientas</b>, <b>un resultado</b> con número y <b>qué buscas</b>.</li>
+            <li><span class="good">Analista de datos con 4 años de experiencia en SQL y Power BI. Automaticé informes que ahorraron 20 horas al mes.</span></li>
+            <li><span class="bad">Soy una persona proactiva, dinámica y comunicativa.</span> Los adjetivos genéricos no dicen qué haces.</li>
+            <li><b>¿Sin experiencia?</b> Habla de tus estudios, proyectos y de lo que quieres aprender.</li>
+          </ul>
+        </details>
+        <label>De 2 a 4 frases: quién eres, años de experiencia, especialidad y qué aportas
+          <textarea id="resumo" data-k="resumo" rows="4" placeholder="Ej.: Analista de datos con 4 años de experiencia en SQL, Python y Power BI en el sector retail. Automaticé informes que ahorraron 20 horas al mes al equipo financiero. Busco un puesto de Analista de Datos Semi Senior en una empresa orientada a datos."></textarea>
+          <span class="hint" id="resumoCount"></span>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Experiencia profesional</legend>
+        <details class="help">
+          <summary>Cómo completar</summary>
+          <ul>
+            <li>Empieza por la experiencia <b>más reciente</b>. Las prácticas, el trabajo freelance y el voluntariado también cuentan.</li>
+            <li><b>Logros:</b> verbo en pasado + qué hiciste + herramienta + resultado con número. En el empleo actual también vale el presente ("Desarrollo", "Lidero").</li>
+            <li><span class="good">Reduje un 30% el tiempo de atención implantando un nuevo flujo en Zendesk</span></li>
+            <li><span class="bad">Responsable de la atención al cliente</span> Describe la función, no el resultado.</li>
+            <li><b>¿No tienes el número exacto?</b> Usa una estimación honesta: "unos 50 clientes al mes".</li>
+          </ul>
+        </details>
+        <div id="expList"></div>
+        <button type="button" class="add" data-add="exp">+ Añadir experiencia</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Formación académica</legend>
+        <details class="help">
+          <summary>Cómo completar</summary>
+          <ul>
+            <li>Escribe el tipo y el nombre de la titulación: <span class="good">Grado en Ingeniería Informática</span> <span class="bad">GII</span></li>
+            <li>Institución con el nombre completo y la sigla entre paréntesis.</li>
+            <li><b>¿Sigues estudiando?</b> Elige "En curso" e indica la fecha prevista de finalización.</li>
+            <li>Incluye la educación secundaria solo si es tu nivel más alto.</li>
+          </ul>
+        </details>
+        <div id="eduList"></div>
+        <button type="button" class="add" data-add="edu">+ Añadir formación</button>
+        <label class="check order"><input type="checkbox" id="formacaoPrimeiro"> <span>Mostrar la formación antes de la experiencia <span class="hint">recomendado para estudiantes, becarios y quienes cambian de área</span></span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Habilidades, idiomas y certificaciones</legend>
+        <details class="help">
+          <summary>Cómo completar</summary>
+          <ul>
+            <li><b>Habilidades:</b> una categoría por línea, con el formato <code>Categoría: elementos separados por comas</code>. La categoría aparece en negrita.</li>
+            <li>Usa <b>los mismos términos de la oferta</b>: si pide "Power BI", no escribas solo "BI".</li>
+            <li><b>Idiomas:</b> <code>Idioma: nivel</code>. Niveles: básico, intermedio, avanzado, fluido o nativo. Sé honesto; pueden evaluarlo en la entrevista.</li>
+            <li><b>Certificaciones:</b> nombre oficial y año. Cursos cortos solo si tienen relación con el puesto.</li>
+          </ul>
+        </details>
+        <label>Habilidades <span class="hint">una categoría por línea: Categoría: elementos</span>
+          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="Ej.:
+Análisis de datos: SQL, Python, Power BI, Excel avanzado
+Metodologías: Scrum, Kanban
+Competencias: comunicación con stakeholders, organización"></textarea></label>
+        <label>Idiomas <span class="hint">uno por línea: Idioma: nivel</span>
+          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="Ej.:
+Inglés: avanzado
+Portugués: intermedio"></textarea></label>
+        <label>Certificaciones y cursos <span class="hint">uno por línea, con el nombre oficial y el año</span>
+          <textarea id="certificacoes" data-k="certificacoes" rows="2" placeholder="Ej.:
+Microsoft Certified: Power BI Data Analyst Associate (2024)
+Google Data Analytics Professional Certificate (2023)"></textarea></label>
+      </fieldset>
+    </form>
+
+    <aside id="preview" role="tabpanel" aria-labelledby="tabPreview">
+      <section class="card privacy" aria-labelledby="privacyTitle">
+        <h2 id="privacyTitle">Tus datos se quedan en este navegador</h2>
+        <p>Nada de lo que escribes se envía a servidores. En un ordenador compartido, exporta una copia y usa &quot;Borrar todo&quot; al terminar.</p>
+        <div class="card-actions">
+          <button type="button" class="btn small" id="exportBtn">Exportar datos</button>
+          <button type="button" class="btn small" id="importBtn">Importar datos</button>
+          <input type="file" id="importFile" accept="application/json,.json" hidden>
+          <button type="button" class="btn small danger" id="clearBtn">Borrar todo</button>
+        </div>
+      </section>
+
+      <section class="checks" aria-labelledby="checksTitle">
+        <h2 id="checksTitle"><span>Revisión ATS</span><span id="score"></span></h2>
+        <ul id="checkList"></ul>
+      </section>
+
+      <details class="card job">
+        <summary>Comparar con una oferta</summary>
+        <label>Pega aquí la descripción de la oferta <span class="hint">se queda solo en tu navegador</span>
+          <textarea id="vaga" rows="4" maxlength="15000" placeholder="Ej.: Requisitos: Python, Django, PostgreSQL, Docker, AWS..."></textarea></label>
+        <div id="jobResult" aria-live="polite"></div>
+      </details>
+
+      <div class="sheet-bar">
+        <span>Vista previa del PDF</span>
+        <button type="button" class="btn small" id="atsBtn">Ver cómo lo lee el ATS</button>
+      </div>
+      <div class="sheet-wrap"><section class="sheet" id="sheet" aria-label="Vista previa del currículum"></section></div>
+      <div class="status" id="status" role="status"></div>
+    </aside>
+  </div>
+  </main>
+</div>
+
+<dialog id="atsDialog" aria-labelledby="atsTitle">
+  <div class="dialog-head">
+    <h2 id="atsTitle">Texto extraído de tu PDF</h2>
+    <button type="button" class="btn small" id="atsClose">Cerrar</button>
+  </div>
+  <p class="hint">Así es como un sistema de selección lee el archivo: en el mismo orden, sin perder secciones. Este texto se extrajo del PDF recién generado, con la misma técnica que usan esos sistemas.</p>
+  <pre id="atsText"></pre>
+</dialog>
+<div id="live" class="sr-only" aria-live="polite"></div>
+</body>
+</html>

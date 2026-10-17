@@ -1,5 +1,6 @@
 // Prévia em folha A4 e lista da checagem ATS. Todo texto do usuário passa por esc().
 import { esc, wordCount } from "../format.js";
+import { DICTS, t } from "../i18n/index.js";
 import { $ } from "./dom.js";
 
 const li = (it) => `<li>${it.label ? `<b>${esc(it.label)}:</b> ` : ""}${esc(it.text)}</li>`;
@@ -19,18 +20,18 @@ export function renderPreview(m) {
     if (sec.list) h += `<ul>${sec.list.map(li).join("")}</ul>`;
   }
   $("sheet").innerHTML = h;
-  $("sheet").lang = { pt: "pt-BR", en: "en", es: "es" }[m.lang] || "pt-BR";
+  $("sheet").lang = DICTS[m.lang].meta.htmlLang;
 }
 
-/** O resultado não depende só da cor: ✓ / ! visíveis e "concluído" / "pendente" para leitores de tela. */
+/** O resultado não depende só da cor: ✓ / ! visíveis e "Concluído:" / "Pendente:" (traduzidos) para leitores de tela. */
 export function renderChecks(checks, resumo) {
   const ok = checks.filter((c) => c.ok).length;
   $("score").textContent = $("tabScore").textContent = `${ok}/${checks.length}`;
   $("checkList").innerHTML = checks
     .map(
       (c) =>
-        `<li class="${c.ok ? "ok" : "no"}"><span class="sr-only">${c.ok ? "Concluído:" : "Pendente:"}</span> ${esc(c.text)}</li>`
+        `<li class="${c.ok ? "ok" : "no"}"><span class="sr-only">${esc(t(c.ok ? "checkOk" : "checkNo"))}</span> ${esc(c.text)}</li>`
     )
     .join("");
-  $("resumoCount").textContent = `${wordCount(resumo)} palavras`;
+  $("resumoCount").textContent = t("words", { n: wordCount(resumo) });
 }

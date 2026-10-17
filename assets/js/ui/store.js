@@ -1,8 +1,10 @@
 // Estado compartilhado da interface. Os módulos leem `app.state` e chamam `changed()`
 // depois de alterá-lo; quem precisa reagir (prévia, checagem, salvamento) se inscreve em `onChange`.
+import { pageLang } from "../i18n/index.js";
 import { load, save } from "../state.js";
 
-const loaded = load();
+// cada página (pt, en, es) carrega e salva o rascunho do seu próprio idioma
+const loaded = load(globalThis.localStorage, pageLang());
 export const app = {
   state: loaded.state,
   isExample: loaded.isExample,

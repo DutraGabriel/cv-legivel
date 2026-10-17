@@ -1,19 +1,23 @@
 // Formulário: liga os campos ao estado, desenha as listas de experiência/formação e valida.
-import { FORM_LABEL, MODALIDADES, SITUACOES } from "../cv-i18n.js";
+// Todos os textos vêm do idioma da página, via t().
+import { MODALIDADES, SITUACOES } from "../options.js";
 import { cleanUrl, esc, fmtDate, fmtPhone } from "../format.js";
+import { pageLang, t } from "../i18n/index.js";
 import { dateErrors, MAX_LENGTH, sanitize, VALIDATE } from "../rules.js";
 import { EMPTY_EDU, EMPTY_EXP } from "../state.js";
 import { $, autosize, autosizeAll, flash, maskInput, setError } from "./dom.js";
 import { app, changed } from "./store.js";
 
+const LANG = pageLang();
+const isPt = LANG === "pt";
 const maxFor = (f) => MAX_LENGTH[f] || MAX_LENGTH.default;
 const isDateField = (f) => f === "inicio" || f === "fim";
-const fimLabel = (status) => (status === "andamento" ? "Previsão de conclusão" : "Conclusão");
+const fimLabel = (status) => t(status === "andamento" ? "fPrevisao" : "fConclusao");
 
 /** Remove caracteres proibidos do campo e avisa a pessoa. `field` é "nome" ou "exp.cargo". */
 function applyRule(el, field) {
   const { value, removed, msg } = sanitize(el.value, field);
-  if (!removed) return;
+  if (value === el.value) return;
   const pos = Math.max(0, (el.selectionStart ?? value.length) - (el.value.length - value.length));
   el.value = value;
   try {
@@ -21,21 +25,23 @@ function applyRule(el, field) {
   } catch {
     /* campos type=email não aceitam seleção */
   }
-  flash(el, msg);
+  if (removed) flash(el, t(msg)); // só juntar acentos (NFC) não precisa de aviso
 }
 
 function validateSimple(el) {
   const fn = VALIDATE[el.dataset.k];
-  if (fn) setError(el, fn(el.value.trim()));
+  if (fn) setError(el, t(fn(el.value.trim(), LANG)) || "");
 }
 
 /* ---------- campos simples (data-k) ---------- */
 export function bindSimple() {
   document.querySelectorAll("[data-k]").forEach((el) => {
-    el.maxLength = maxFor(el.dataset.k);
+    if (el.tagName !== "SELECT") el.maxLength = maxFor(el.dataset.k);
     el.addEventListener("input", () => {
-      if (el.dataset.k === "telefone") maskInput(el, fmtPhone);
-      else applyRule(el, el.dataset.k);
+      if (el.dataset.k === "telefone") {
+        if (isPt) maskInput(el, fmtPhone);
+        else applyRule(el, "tel");
+      } else applyRule(el, el.dataset.k);
       if (el.dataset.error) validateSimple(el); // o erro some assim que for corrigido
       app.state[el.dataset.k] = el.value;
       changed();
@@ -59,7 +65,7 @@ export function bindSimple() {
 export function fillSimple() {
   document.querySelectorAll("[data-k]").forEach((el) => {
     const v = app.state[el.dataset.k] || "";
-    el.value = el.dataset.k === "telefone" ? fmtPhone(v) : v;
+    el.value = el.dataset.k === "telefone" && isPt ? fmtPhone(v) : v;
     validateSimple(el);
   });
   $("formacaoPrimeiro").checked = app.state.formacaoPrimeiro;
@@ -67,31 +73,33 @@ export function fillSimple() {
 
 /* ---------- listas de experiência e formação ---------- */
 const input = (list, i, f, value, extra = "") =>
-  `<input id="${list}-${i}-${f}" data-l="${list}" data-i="${i}" data-f="${f}" value="${esc(value)}" maxlength="${maxFor(f)}" ${extra}>`;
-const options = (keys, labels, current) =>
-  `<option value="">Não informar</option>${keys.map((k) => `<option value="${k}"${k === current ? " selected" : ""}>${labels[k]}</option>`).join("")}`;
+  `<input type="text" id="${list}-${i}-${f}" data-l="${list}" data-i="${i}" data-f="${f}" value="${esc(value)}" maxlength="${maxFor(f)}" ${extra}>`;
+const options = (keys, group, current) =>
+  `<option value="">${esc(t("none"))}</option>${keys.map((k) => `<option value="${k}"${k === current ? " selected" : ""}>${esc(t(`${group}.${k}`))}</option>`).join("")}`;
 const removeBtn = (list, i, total) =>
-  total > 1 ? `<button type="button" class="remove" data-rm="${list}" data-i="${i}">Remover</button>` : "";
+  total > 1 ? `<button type="button" class="remove" data-rm="${list}" data-i="${i}">${esc(t("remove"))}</button>` : "";
+const ph = (key) => `placeholder="${esc(t(key))}"`;
+const dateAttrs = (extra = "") => `inputmode="numeric" ${ph("datePh")}${extra}`;
 
 function expItem(x, i, total) {
   return `
     <div class="item">
-      <div class="item-head"><span>Experiência ${i + 1}${i === 0 ? " · a mais recente primeiro" : ""}</span>${removeBtn("exp", i, total)}</div>
+      <div class="item-head"><span>${esc(t("expItem", { n: i + 1 }))}${i === 0 ? ` · ${esc(t("expRecent"))}` : ""}</span>${removeBtn("exp", i, total)}</div>
       <div class="row">
-        <label>Cargo${input("exp", i, "cargo", x.cargo, 'placeholder="Ex.: Analista de Dados Júnior"')}<span class="hint">título de mercado, sem siglas internas</span></label>
-        <label>Empresa${input("exp", i, "empresa", x.empresa, 'placeholder="Ex.: Supermercados Bom Preço"')}</label>
+        <label>${esc(t("fExpCargo"))}${input("exp", i, "cargo", x.cargo, ph("pExpCargo"))}<span class="hint">${esc(t("hExpCargo"))}</span></label>
+        <label>${esc(t("fEmpresa"))}${input("exp", i, "empresa", x.empresa, ph("pEmpresa"))}</label>
       </div>
       <div class="row">
-        <label>Local${input("exp", i, "local", x.local, 'placeholder="Ex.: Curitiba, PR"')}</label>
-        <label>Modalidade<select id="exp-${i}-modalidade" data-l="exp" data-i="${i}" data-f="modalidade">${options(MODALIDADES, FORM_LABEL.mod, x.modalidade)}</select></label>
+        <label>${esc(t("fLocal"))}${input("exp", i, "local", x.local, ph("pLocal"))}</label>
+        <label>${esc(t("fModalidade"))}<select id="exp-${i}-modalidade" data-l="exp" data-i="${i}" data-f="modalidade">${options(MODALIDADES, "mod", x.modalidade)}</select></label>
       </div>
       <div class="row dates">
-        <label>Início${input("exp", i, "inicio", x.inicio, 'inputmode="numeric" placeholder="MM/AAAA"')}</label>
-        <label>Fim${input("exp", i, "fim", x.fim, `inputmode="numeric" placeholder="MM/AAAA"${x.atual ? " disabled" : ""}`)}</label>
-        <label class="check"><input id="exp-${i}-atual" type="checkbox" data-l="exp" data-i="${i}" data-f="atual"${x.atual ? " checked" : ""}> Trabalho aqui atualmente</label>
+        <label>${esc(t("fInicio"))}${input("exp", i, "inicio", x.inicio, dateAttrs())}</label>
+        <label>${esc(t("fFim"))}${input("exp", i, "fim", x.fim, dateAttrs(x.atual ? " disabled" : ""))}</label>
+        <label class="check"><input id="exp-${i}-atual" type="checkbox" data-l="exp" data-i="${i}" data-f="atual"${x.atual ? " checked" : ""}> ${esc(t("fAtual"))}</label>
       </div>
-      <label>Conquistas <span class="hint">uma por linha: verbo no passado (Desenvolvi, Criei, Reduzi) + o que fez + resultado com número</span>
-        <textarea id="exp-${i}-bullets" rows="4" data-l="exp" data-i="${i}" data-f="bullets" maxlength="${maxFor("bullets")}" placeholder="Ex.:&#10;Automatizei 12 relatórios semanais com Python e SQL, economizando 20 horas por mês da equipe financeira&#10;Criei painéis no Power BI usados por 15 gerentes de loja para acompanhar vendas diárias&#10;Reduzi em 35% os erros de cadastro implantando validações no processo de ETL">${esc(x.bullets)}</textarea></label>
+      <label>${esc(t("fBullets"))} <span class="hint">${esc(t("hBullets"))}</span>
+        <textarea id="exp-${i}-bullets" rows="4" data-l="exp" data-i="${i}" data-f="bullets" maxlength="${maxFor("bullets")}" ${ph("pBullets")}>${esc(x.bullets)}</textarea></label>
     </div>`;
 }
 
@@ -99,15 +107,15 @@ function eduItem(x, i, total) {
   const trancado = x.status === "trancado";
   return `
     <div class="item">
-      <div class="item-head"><span>Formação ${i + 1}</span>${removeBtn("edu", i, total)}</div>
+      <div class="item-head"><span>${esc(t("eduItem", { n: i + 1 }))}</span>${removeBtn("edu", i, total)}</div>
       <div class="row">
-        <label>Curso / grau${input("edu", i, "curso", x.curso, 'placeholder="Ex.: Bacharelado em Administração"')}<span class="hint">tipo + nome do curso</span></label>
-        <label>Instituição${input("edu", i, "inst", x.inst, 'placeholder="Ex.: Universidade Federal do Paraná (UFPR)"')}<span class="hint">nome completo e sigla</span></label>
+        <label>${esc(t("fCurso"))}${input("edu", i, "curso", x.curso, ph("pCurso"))}<span class="hint">${esc(t("hCurso"))}</span></label>
+        <label>${esc(t("fInst"))}${input("edu", i, "inst", x.inst, ph("pInst"))}<span class="hint">${esc(t("hInst"))}</span></label>
       </div>
       <div class="row dates">
-        <label>Situação<select id="edu-${i}-status" data-l="edu" data-i="${i}" data-f="status">${options(SITUACOES, FORM_LABEL.status, x.status)}</select></label>
-        <label>Início${input("edu", i, "inicio", x.inicio, 'inputmode="numeric" placeholder="MM/AAAA"')}</label>
-        <label><span id="edu-${i}-fimlbl">${fimLabel(x.status)}</span>${input("edu", i, "fim", trancado ? "" : x.fim, `inputmode="numeric" placeholder="MM/AAAA"${trancado ? " disabled" : ""}`)}</label>
+        <label>${esc(t("fStatus"))}<select id="edu-${i}-status" data-l="edu" data-i="${i}" data-f="status">${options(SITUACOES, "status", x.status)}</select></label>
+        <label>${esc(t("fInicio"))}${input("edu", i, "inicio", x.inicio, dateAttrs())}</label>
+        <label><span id="edu-${i}-fimlbl">${esc(fimLabel(x.status))}</span>${input("edu", i, "fim", trancado ? "" : x.fim, dateAttrs(trancado ? " disabled" : ""))}</label>
       </div>
     </div>`;
 }
@@ -117,8 +125,8 @@ function validateDates(list, i) {
   const fim = $(`${list}-${i}-fim`);
   if (!ini || !fim) return;
   const e = dateErrors(app.state[list][i], list);
-  setError(ini, e.inicio);
-  setError(fim, e.fim);
+  setError(ini, e.inicio && t(e.inicio));
+  setError(fim, e.fim && t(e.fim));
 }
 
 export function renderLists() {

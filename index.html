@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="pt-BR">
+<!-- Gerado por scripts/pages.mjs a partir de templates/index.html. Não edite este arquivo. -->
+<html lang="pt-BR" data-lang="pt" data-langs="pt en es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,6 +10,10 @@
   <title>CV Legível — currículos que o ATS consegue ler</title>
   <meta name="description" content="Gerador gratuito de currículo em PDF de coluna única, com texto real e seções padrão, otimizado para ATS e triagem por IA. Seus dados não saem do navegador.">
   <link rel="canonical" href="https://dutragabriel.github.io/cv-legivel/">
+  <link rel="alternate" hreflang="pt-BR" href="https://dutragabriel.github.io/cv-legivel/">
+  <link rel="alternate" hreflang="en" href="https://dutragabriel.github.io/cv-legivel/en/">
+  <link rel="alternate" hreflang="es" href="https://dutragabriel.github.io/cv-legivel/es/">
+  <link rel="alternate" hreflang="x-default" href="https://dutragabriel.github.io/cv-legivel/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:title" content="CV Legível — currículos que o ATS consegue ler">
@@ -25,12 +30,15 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <script src="assets/js/theme-init.js"></script>
+  <script src="assets/js/boot.js"></script>
   <script src="assets/js/main.js" type="module"></script>
 </head>
 <body>
 <a class="skip" href="#form">Pular para o formulário</a>
+<noscript><p class="noscript">O CV Legível precisa de JavaScript para montar o currículo. Ative o JavaScript neste site e recarregue a página.</p></noscript>
 <div class="wrap">
+  <!-- sugestão de idioma: preenchida por main.js, no idioma do navegador (ver suggestLang em ui/chrome.js) -->
+  <div class="lang-suggest" id="langSuggest" hidden></div>
   <header class="top">
     <div>
       <h1>CV Legível</h1>
@@ -38,7 +46,7 @@
     </div>
     <div class="actions">
       <span id="exampleBadge" class="badge" hidden>Dados de exemplo</span>
-      <label class="lang">Idioma do currículo <select id="cvLang"></select></label>
+      <nav class="langs" aria-label="Idioma"><a href="" hreflang="pt-BR" lang="pt-BR" data-lang-link="pt" title="Português" aria-current="page"><span aria-hidden="true">PT</span><span class="sr-only">Português</span></a><a href="en/" hreflang="en" lang="en" data-lang-link="en" title="English"><span aria-hidden="true">EN</span><span class="sr-only">English</span></a><a href="es/" hreflang="es" lang="es" data-lang-link="es" title="Español"><span aria-hidden="true">ES</span><span class="sr-only">Español</span></a></nav>
       <button type="button" class="btn" id="themeBtn">Tema</button>
       <button type="button" class="btn-primary" id="pdfBtn">Gerar PDF</button>
     </div>
@@ -52,6 +60,12 @@
 
   <div class="grid" id="grid" data-view="form">
     <form id="form" role="tabpanel" aria-labelledby="tabForm" autocomplete="on" novalidate>
+      <div class="card copy-offer" id="copyOffer" role="group" aria-labelledby="copyTitle" hidden>
+        <p class="copy-title" id="copyTitle"></p>
+        <p>Copie os dados para cá e só traduza os textos, ou comece pelo exemplo.</p>
+        <div class="card-actions" id="copyActions"></div>
+      </div>
+
       <fieldset>
         <legend>Dados pessoais</legend>
         <details class="help">
@@ -104,7 +118,7 @@
           <summary>Como preencher</summary>
           <ul>
             <li>Comece pela experiência <b>mais recente</b>. Estágio, freelance e trabalho voluntário também contam.</li>
-            <li><b>Conquistas:</b> verbo no passado + o que você fez + ferramenta + resultado com número.</li>
+            <li><b>Conquistas:</b> verbo no passado + o que você fez + ferramenta + resultado com número. No emprego atual, o presente também vale ("Desenvolvo", "Lidero").</li>
             <li><span class="good">Reduzi em 30% o tempo de atendimento implantando um novo fluxo no Zendesk</span></li>
             <li><span class="bad">Responsável pelo atendimento ao cliente</span> Descreve a função, não o resultado.</li>
             <li><b>Não tem o número exato?</b> Use uma estimativa honesta: "cerca de 50 clientes por mês".</li>
@@ -142,18 +156,25 @@
           </ul>
         </details>
         <label>Habilidades <span class="hint">uma categoria por linha: Categoria: itens</span>
-          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="Ex.:&#10;Análise de dados: SQL, Python, Power BI, Excel avançado&#10;Metodologias: Scrum, Kanban&#10;Competências: comunicação com stakeholders, organização"></textarea></label>
+          <textarea id="habilidades" data-k="habilidades" rows="3" placeholder="Ex.:
+Análise de dados: SQL, Python, Power BI, Excel avançado
+Metodologias: Scrum, Kanban
+Competências: comunicação com stakeholders, organização"></textarea></label>
         <label>Idiomas <span class="hint">um por linha: Idioma: nível</span>
-          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="Ex.:&#10;Inglês: avançado&#10;Espanhol: intermediário"></textarea></label>
+          <textarea id="idiomas" data-k="idiomas" rows="2" placeholder="Ex.:
+Inglês: avançado
+Espanhol: intermediário"></textarea></label>
         <label>Certificações e cursos <span class="hint">um por linha, com o nome oficial e o ano</span>
-          <textarea id="certificacoes" data-k="certificacoes" rows="2" placeholder="Ex.:&#10;Microsoft Certified: Power BI Data Analyst Associate (2024)&#10;Google Data Analytics Professional Certificate (2023)"></textarea></label>
+          <textarea id="certificacoes" data-k="certificacoes" rows="2" placeholder="Ex.:
+Microsoft Certified: Power BI Data Analyst Associate (2024)
+Google Data Analytics Professional Certificate (2023)"></textarea></label>
       </fieldset>
     </form>
 
     <aside id="preview" role="tabpanel" aria-labelledby="tabPreview">
       <section class="card privacy" aria-labelledby="privacyTitle">
         <h2 id="privacyTitle">Seus dados ficam neste navegador</h2>
-        <p>Nada do que você digita é enviado a servidores. Em computador compartilhado, exporte uma cópia e use "Limpar tudo" ao terminar.</p>
+        <p>Nada do que você digita é enviado a servidores. Em computador compartilhado, exporte uma cópia e use &quot;Limpar tudo&quot; ao terminar.</p>
         <div class="card-actions">
           <button type="button" class="btn small" id="exportBtn">Exportar dados</button>
           <button type="button" class="btn small" id="importBtn">Importar dados</button>

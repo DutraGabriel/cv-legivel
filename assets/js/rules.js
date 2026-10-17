@@ -1,15 +1,18 @@
-// Restrições de caracteres e validações. Funções puras: recebem valores, devolvem mensagens.
+// Restrições de caracteres e validações. Funções puras: recebem valores e devolvem a CHAVE
+// da mensagem ("rNome", "vEmail"...), traduzida pela interface com t() no idioma da página.
 import { isDate, ym, ymNow } from "./format.js";
 
 // Cada regra lista o que NÃO pode. O caractere é removido ao digitar e um aviso aparece.
+// \p{M} (acentos combinados) fica liberado para escritas que não têm a letra acentuada pronta.
 export const RULES = {
-  nome: { re: /[^\p{L}\s'’-]/gu, msg: "Use apenas letras, espaço, hífen e apóstrofo." },
-  cargo: { re: /[^\p{L}\p{N}\s.+#/()&-]/gu, msg: "Símbolo não permitido. Aceitos: . + # / - ( ) &" },
-  local: { re: /[^\p{L}\s,/()'’.-]/gu, msg: "Use apenas letras, vírgula, hífen e parênteses, sem números." },
-  curso: { re: /[^\p{L}\s(),./-]/gu, msg: "Use apenas letras e - ( ) , . /" },
-  livre: { re: /[<>{}[\]\p{Extended_Pictographic}]/gu, msg: "Caractere não permitido neste campo." },
-  texto: { re: /\p{Extended_Pictographic}/gu, msg: "Emojis não são lidos corretamente por sistemas de triagem." },
-  link: { re: /\s/g, msg: "Endereços não têm espaços." }
+  nome: { re: /[^\p{L}\p{M}\s.'’-]/gu, msg: "rNome" }, // "John A. Smith Jr.", "D'Ávila"
+  cargo: { re: /[^\p{L}\p{M}\p{N}\s.,:'’+#/()&-]/gu, msg: "rCargo" }, // "Head of Data, LATAM"
+  local: { re: /[^\p{L}\p{M}\s,/()'’.-]/gu, msg: "rLocal" },
+  curso: { re: /[^\p{L}\p{M}\p{N}\s(),.:'’&/-]/gu, msg: "rCurso" }, // "Bachelor's in Computer Science"
+  livre: { re: /[<>{}[\]\p{Extended_Pictographic}]/gu, msg: "rLivre" },
+  texto: { re: /\p{Extended_Pictographic}/gu, msg: "rTexto" },
+  link: { re: /\s/g, msg: "rLink" },
+  tel: { re: /[^\d\s+().-]/g, msg: "rTel" }
 };
 
 /** Campo → regra. Campos simples usam o nome; campos de listas usam "lista.campo". */
@@ -19,6 +22,7 @@ export const FIELD_RULE = {
   email: "link",
   linkedin: "link",
   site: "link",
+  cidade: "local",
   resumo: "texto",
   habilidades: "texto",
   idiomas: "texto",
@@ -43,38 +47,48 @@ export const MAX_LENGTH = {
   default: 160
 };
 
-/** Remove os caracteres proibidos. Devolve o valor limpo e se algo foi removido. */
+/**
+ * Remove os caracteres proibidos. Devolve o valor limpo, se algo foi removido e a chave da mensagem.
+ * Antes, junta letra + acento num caractere só (NFC): texto colado de PDF ou digitado no Mac pode vir
+ * com "e" + "´" separados, e a regra apagaria o acento ("José" virando "Jose").
+ */
 export function sanitize(value, field) {
+  const nfc = value.normalize("NFC");
   const rule = RULES[FIELD_RULE[field]];
-  if (!rule) return { value, removed: false, msg: "" };
-  const cleaned = value.replace(rule.re, "");
-  return { value: cleaned, removed: cleaned !== value, msg: rule.msg };
+  if (!rule) return { value: nfc, removed: false, msg: "" };
+  const cleaned = nfc.replace(rule.re, "");
+  return { value: cleaned, removed: cleaned !== nfc, msg: rule.msg };
 }
 
+/** Validações: devolvem "" quando está tudo certo ou a chave da mensagem de erro. */
 export const VALIDATE = {
-  email: (v) =>
-    !v || /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v) ? "" : "E-mail incompleto. Ex.: nome.sobrenome@email.com",
-  linkedin: (v) =>
-    !v || /^linkedin\.com\/in\/[^/\s]+$/i.test(v) ? "" : "Use o endereço do perfil: linkedin.com/in/seu-perfil",
-  telefone: (v) => (!v || v.replace(/\D/g, "").length >= 10 ? "" : "Telefone incompleto: informe DDD + número.")
+  email: (v) => (!v || /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v) ? "" : "vEmail"),
+  // aceita o prefixo de país do LinkedIn: es.linkedin.com, br.linkedin.com...
+  linkedin: (v) => (!v || /^(?:[a-z]{2}\.)?linkedin\.com\/in\/[^/\s]+$/i.test(v) ? "" : "vLinkedin"),
+  // Brasil: DDD + número (10 ou 11 dígitos). Internacional: código do país com "+" e ao menos 8 dígitos.
+  telefone: (v, lang = "pt") => {
+    if (!v) return "";
+    if (lang === "pt") return v.replace(/\D/g, "").length >= 10 ? "" : "vTel";
+    return /^\+/.test(v.trim()) && v.replace(/\D/g, "").length >= 8 ? "" : "vTelIntl";
+  }
 };
 
 /**
  * Valida as datas de uma experiência ou formação.
- * Devolve { inicio, fim } com a mensagem de erro de cada campo ("" quando está ok).
+ * Devolve { inicio, fim } com a chave da mensagem de erro de cada campo ("" quando está ok).
  */
 export function dateErrors(item, kind, now = ymNow()) {
   const bad = (v) => v.length === 7 && !isDate(v);
   const fimAtivo = kind === "exp" ? !item.atual : item.status !== "trancado";
-  let inicio = bad(item.inicio) ? "Mês inválido: use de 01 a 12." : "";
-  let fim = fimAtivo && bad(item.fim) ? "Mês inválido: use de 01 a 12." : "";
-  if (!inicio && isDate(item.inicio) && ym(item.inicio) > now) inicio = "O início não pode estar no futuro.";
+  let inicio = bad(item.inicio) ? "dMonth" : "";
+  let fim = fimAtivo && bad(item.fim) ? "dMonth" : "";
+  if (!inicio && isDate(item.inicio) && ym(item.inicio) > now) inicio = "dStartFuture";
   if (!fim && fimAtivo && isDate(item.inicio) && isDate(item.fim) && ym(item.fim) < ym(item.inicio)) {
-    fim = "O fim não pode ser antes do início.";
+    fim = "dEndBefore";
   }
   if (!fim && fimAtivo && isDate(item.fim) && ym(item.fim) > now) {
-    if (kind === "exp") fim = 'Data no futuro. Se ainda trabalha aqui, marque "Trabalho aqui atualmente".';
-    else if (item.status !== "andamento") fim = 'Conclusão no futuro? Mude a situação para "Em andamento".';
+    if (kind === "exp") fim = "dEndFutureExp";
+    else if (item.status !== "andamento") fim = "dEndFutureEdu";
   }
   return { inicio, fim };
 }

@@ -10,6 +10,8 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: {
     baseURL: "http://127.0.0.1:4173",
+    // navegador em português: a raiz do site não redireciona para /en/ ou /es/ nos testes
+    locale: "pt-BR",
     acceptDownloads: true,
     ...(local ? { channel: "chrome" } : {})
   },

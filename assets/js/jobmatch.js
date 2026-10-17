@@ -2,29 +2,18 @@
 // Heurística simples e transparente (sem IA): termos técnicos, siglas, nomes próprios
 // e palavras que se repetem na vaga. Pura: pode ser testada no Node.
 import { stripAccents } from "./format.js";
-
-// palavras comuns em PT, EN e ES que não dizem nada sobre a vaga
-const STOP = new Set(
-  (
-    "a o e é de da do das dos em no na nos nas um uma uns umas para por com sem que se ao aos à às ou como mais muito " +
-    "sua seu suas seus nossa nosso nossas nossos voce você vocês ser ter estar será sera sao são está esta este essa esse " +
-    "isso isto pelo pela pelos pelas entre sobre ate até desde quando onde qual quais tambem também já ja não nao sim " +
-    "vaga vagas empresa time equipe area área trabalho trabalhar atuar atuacao atuação experiencia experiência conhecimento " +
-    "conhecimentos requisitos requisito diferencial diferenciais desejavel desejável beneficios benefícios responsabilidades " +
-    "atividades buscamos procuramos oferecemos profissional pessoa pessoas forma boa bom bons boas novo nova novos novas " +
-    "anos ano dia dias mes mês meses horas the and for with you your our are will this that from have has can able " +
-    "work team role job company experience knowledge skills skill requirements required preferred plus years year strong " +
-    "good great new using use within across about into also more must should would other who what which their they them " +
-    "el la los las del con por para una unos unas como mas más sus nuestro nuestra empresa equipo trabajo puesto requisitos " +
-    "experiencia conocimiento conocimientos años " +
-    // títulos e senioridade: o cargo já é conferido em outro lugar e "Desenvolvedor" × "Desenvolvedora" geraria falso alerta
-    "junior júnior pleno senior sênior estagiario estagiário trainee desenvolvedor desenvolvedora developer engineer " +
-    "engenheiro engenheira analista vacante hiring looking nice have join seja venha buscamos procuramos sobre"
-  ).split(/\s+/)
-);
+import { DICTS, LANGS } from "./i18n/index.js";
 
 const norm = (s) => stripAccents(s).toLowerCase();
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// palavras comuns que não dizem nada sobre a vaga (rules.jobStop de cada idioma). A vaga pode estar
+// em qualquer idioma, independentemente da página, então valem as listas dos três.
+const STOP = new Set(LANGS.flatMap((l) => DICTS[l].rules.jobStop.split(/\s+/).map(norm)));
+// 1ª pessoa do plural em português e espanhol ("Oferecemos", "Valoramos", "Buscamos"):
+// costuma abrir frases de anúncio e, com a maiúscula, pareceria um nome de tecnologia
+const WE_VERB = /^\p{L}{3,}(amos|emos|imos)$/u;
+const isStop = (w) => STOP.has(norm(w)) || WE_VERB.test(norm(w));
 
 /** true se o termo aparece como palavra inteira no texto (funciona com "C#", ".NET", "Node.js"). */
 export function containsTerm(text, term) {
@@ -39,11 +28,11 @@ export function extractKeywords(jobText, limit = 30) {
   const add = (term, score) => {
     // tira palavras genéricas das pontas: "Senior Frontend Engineer" → "Frontend"
     const words = term.split(/\s+/);
-    while (words.length && STOP.has(norm(words[0]))) words.shift();
-    while (words.length && STOP.has(norm(words.at(-1)))) words.pop();
+    while (words.length && isStop(words[0])) words.shift();
+    while (words.length && isStop(words.at(-1))) words.pop();
     const t = words.join(" ").replace(/^[^\p{L}\p{N}.#+]+|[^\p{L}\p{N}#+]+$/gu, "");
     const k = norm(t);
-    if (t.length < 2 || STOP.has(k) || /^\d+$/.test(k)) return "";
+    if (t.length < 2 || isStop(t) || /^\d+$/.test(k)) return "";
     const cur = scores.get(k) || { term: t, score: 0 };
     cur.score += score;
     scores.set(k, cur);
@@ -74,7 +63,7 @@ export function extractKeywords(jobText, limit = 30) {
   const counts = new Map();
   for (const w of text.match(/[\p{L}][\p{L}\p{N}-]{3,}/gu) || []) {
     const k = norm(w);
-    if (!STOP.has(k)) counts.set(k, { term: w.toLowerCase(), n: (counts.get(k)?.n || 0) + 1 });
+    if (!isStop(w)) counts.set(k, { term: w.toLowerCase(), n: (counts.get(k)?.n || 0) + 1 });
   }
   for (const { term, n } of counts.values()) if (n >= 2) add(term, n);
 

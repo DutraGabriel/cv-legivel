@@ -59,7 +59,7 @@ test("checagem diz quantas e qual conquista não começa com verbo", () => {
   });
   const verbos = computeChecks(s, model(s)).find((c) => c.text.startsWith("Conquistas começam"));
   assert.equal(verbos.ok, false);
-  assert.match(verbos.text, /1 de 2 não começa: “Gestão de carteira de clientes”/);
+  assert.match(verbos.text, /1 de 2 sem verbo no início, ex\.: “Gestão de carteira de clientes”/);
   const numeros = computeChecks(s, model(s)).find((c) => c.text.startsWith("Metade"));
   assert.equal(numeros.ok, true);
   assert.match(numeros.text, /agora: 1 de 2/);

@@ -1,23 +1,23 @@
 // Transforma o estado do formulário na estrutura do currículo.
 // A prévia (HTML) e o PDF desenham a partir desta mesma estrutura: o que se vê é o que sai no arquivo.
-import { CV_TEXT } from "./cv-i18n.js";
 import { bulletLines, fmtDate, fmtPhone, labeled, lines } from "./format.js";
+import { countryName, cvText } from "./i18n/index.js";
 
-const PAIS = { en: "Brazil", es: "Brasil" };
+const CV_PT = cvText("pt");
 const join = (parts, sep = " | ") =>
   parts
     .map((v) => String(v ?? "").trim())
     .filter(Boolean)
     .join(sep);
 
-export const period = (inicio, fim, atual, t = CV_TEXT.pt) => {
+export const period = (inicio, fim, atual, t = CV_PT) => {
   const i = fmtDate(inicio);
   const f = atual ? t.atual : fmtDate(fim);
   return i && f ? `${i} – ${f}` : i || f;
 };
 
 // "Início: 07/2025 – Previsão de conclusão: 07/2029" quando em andamento
-export const eduPeriod = (x, t = CV_TEXT.pt) => {
+export const eduPeriod = (x, t = CV_PT) => {
   if (x.status === "andamento")
     return join([x.inicio && `${t.inicio}: ${x.inicio}`, x.fim && `${t.previsao}: ${x.fim}`], " – ");
   if (x.status === "trancado") return x.inicio ? `${t.inicio}: ${x.inicio}` : "";
@@ -25,7 +25,7 @@ export const eduPeriod = (x, t = CV_TEXT.pt) => {
 };
 
 // "Florianópolis, SC (Híbrido)", ou só um dos dois
-export const localModalidade = (x, t = CV_TEXT.pt) => {
+export const localModalidade = (x, t = CV_PT) => {
   const l = x.local.trim();
   const m = t.mod[x.modalidade] || "";
   return l && m ? `${l} (${m})` : l || m;
@@ -33,12 +33,29 @@ export const localModalidade = (x, t = CV_TEXT.pt) => {
 
 const httpUrl = (v) => (v ? `https://${v.replace(/^https?:\/\//i, "")}` : "");
 
+/**
+ * Linha de local e telefone do cabeçalho.
+ * Português: "Florianópolis, SC" e (48) 99999-0000. Inglês/espanhol: "Lisboa, Portugal" e o telefone como digitado.
+ */
+function localTelefone(s) {
+  if (s.cvLang === "pt") {
+    const digits = s.telefone.replace(/\D/g, "");
+    return { local: join([s.cidade, s.uf], ", "), tel: fmtPhone(s.telefone), telUrl: digits ? `tel:+55${digits}` : "" };
+  }
+  const tel = s.telefone.trim();
+  return {
+    local: join([s.cidade, countryName(s.pais, s.cvLang)], ", "),
+    tel,
+    telUrl: tel ? `tel:${tel.startsWith("+") ? "+" : ""}${tel.replace(/\D/g, "")}` : ""
+  };
+}
+
 export function model(s) {
-  const t = CV_TEXT[s.cvLang] || CV_TEXT.pt;
-  const local = join([s.cidade, s.uf, s.cidade && PAIS[s.cvLang]], ", ");
+  const t = cvText(s.cvLang);
+  const { local, tel, telUrl } = localTelefone(s);
   const contato = [
     { text: local },
-    { text: fmtPhone(s.telefone), url: s.telefone ? `tel:+55${s.telefone.replace(/\D/g, "")}` : "" },
+    { text: tel, url: telUrl },
     { text: s.email.trim(), url: s.email.trim() ? `mailto:${s.email.trim()}` : "" },
     { text: s.linkedin.trim(), url: httpUrl(s.linkedin.trim()) },
     { text: s.site.trim(), url: httpUrl(s.site.trim()) }
@@ -52,7 +69,8 @@ export function model(s) {
     .map((x) => ({
       title: x.cargo.trim(),
       meta: join([x.empresa, localModalidade(x, t), period(x.inicio, x.fim, x.atual, t)]),
-      bullets: bulletLines(x.bullets)
+      bullets: bulletLines(x.bullets),
+      current: x.atual // no emprego atual, conquistas no presente também valem (checks.js)
     }));
   const edu = s.edu
     .filter((x) => x.curso.trim() || x.inst.trim())

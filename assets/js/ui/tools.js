@@ -4,6 +4,7 @@ import { matchJob } from "../jobmatch.js";
 import { model, plainText } from "../model.js";
 import { generatePdf } from "../pdf.js";
 import { sanitize } from "../rules.js";
+import { DICTS, t } from "../i18n/index.js";
 import { $, autosize, status } from "./dom.js";
 import { app, changed } from "./store.js";
 
@@ -17,14 +18,14 @@ export function renderJobMatch() {
   }
   const r = matchJob(vaga, plainText(model(app.state)));
   if (!r.keywords.length) {
-    out.innerHTML = `<p class="hint">Não encontrei termos técnicos nessa descrição. Cole o texto completo da vaga.</p>`;
+    out.innerHTML = `<p class="hint">${esc(t("jobNone"))}</p>`;
     return;
   }
   const chips = (list, cls) => list.map((k) => `<li class="chip ${cls}">${esc(k)}</li>`).join("");
   out.innerHTML = `
-    <p class="match-score"><strong>${r.score}%</strong> dos termos da vaga aparecem no seu currículo (${r.found.length} de ${r.keywords.length}).</p>
-    ${r.missing.length ? `<p class="match-label">Ausentes no currículo: inclua os que você realmente domina.</p><ul class="chips">${chips(r.missing, "missing")}</ul>` : ""}
-    ${r.found.length ? `<p class="match-label">Já presentes:</p><ul class="chips">${chips(r.found, "found")}</ul>` : ""}`;
+    <p class="match-score"><strong>${r.score}%</strong> ${esc(t("jobScore", { found: r.found.length, total: r.keywords.length }))}</p>
+    ${r.missing.length ? `<p class="match-label">${esc(t("jobMissing"))}</p><ul class="chips">${chips(r.missing, "missing")}</ul>` : ""}
+    ${r.found.length ? `<p class="match-label">${esc(t("jobFound"))}</p><ul class="chips">${chips(r.found, "found")}</ul>` : ""}`;
 }
 
 export function bindJobMatch() {
@@ -32,8 +33,8 @@ export function bindJobMatch() {
   el.value = app.state.vaga;
   let timer;
   el.addEventListener("input", () => {
-    const { value, removed } = sanitize(el.value, "vaga");
-    if (removed) el.value = value;
+    const { value } = sanitize(el.value, "vaga");
+    if (value !== el.value) el.value = value;
     autosize(el);
     app.state.vaga = el.value;
     changed();
@@ -64,7 +65,7 @@ export async function extractPdfText(bytes) {
     for (const it of content.items) text += it.str + (it.hasEOL ? "\n" : "");
     pages.push(text.trim());
   }
-  return pages.join("\n\n— nova página —\n\n");
+  return pages.join(`\n\n${t("atsNewPage")}\n\n`);
 }
 
 export function bindAtsTest() {
@@ -72,15 +73,17 @@ export function bindAtsTest() {
   $("atsBtn").addEventListener("click", async () => {
     const btn = $("atsBtn");
     btn.disabled = true;
-    status("Gerando o PDF e extraindo o texto…");
+    status(t("stAts"));
     try {
-      const doc = await generatePdf(model(app.state), status);
+      const m = model(app.state);
+      const doc = await generatePdf(m, status);
       $("atsText").textContent = await extractPdfText(doc.output("arraybuffer"));
+      $("atsText").lang = DICTS[m.lang].meta.htmlLang; // o texto extraído está no idioma do currículo
       dialog.showModal();
       status("");
     } catch (e) {
       console.error(e);
-      status("Não foi possível testar a leitura do PDF. Recarregue a página e tente de novo.");
+      status(t("stAtsFail"));
     } finally {
       btn.disabled = false;
     }

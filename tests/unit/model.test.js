@@ -5,7 +5,7 @@ import { matchJob, extractKeywords, containsTerm } from "../../assets/js/jobmatc
 import { eduPeriod, model, plainText } from "../../assets/js/model.js";
 import { needsUnicodeFont } from "../../assets/js/pdf.js";
 import { dateErrors, sanitize } from "../../assets/js/rules.js";
-import { normalize, SAMPLE } from "../../assets/js/state.js";
+import { normalize, SAMPLE, sampleFor } from "../../assets/js/state.js";
 
 test("model monta as seções na ordem padrão e respeita 'formação primeiro'", () => {
   assert.deepEqual(
@@ -18,11 +18,33 @@ test("model monta as seções na ordem padrão e respeita 'formação primeiro'"
   );
 });
 
-test("model traduz textos do currículo, mas não o que a pessoa escreveu", () => {
-  const m = model({ ...SAMPLE, cvLang: "es" });
-  assert.equal(m.sections[1].t, "Experiencia profesional");
-  assert.equal(m.sections[1].jobs[0].meta, "Nuvem Tech | Florianópolis, SC (Híbrido) | 03/2022 – Actualidad");
-  assert.equal(m.contato[0].text, "Florianópolis, SC, Brasil");
+test("cada idioma tem os próprios textos fixos e o próprio formato de local e telefone", () => {
+  const es = model(sampleFor("es"));
+  assert.equal(es.sections[1].t, "Experiencia profesional");
+  assert.equal(es.sections[1].jobs[0].meta, "Nuvem Tech | Florianópolis, Brasil (Híbrido) | 03/2022 – Actualidad");
+  assert.deepEqual(
+    es.contato.slice(0, 2).map((c) => c.text),
+    ["Florianópolis, Brasil", "+55 48 99999-0000"]
+  );
+  assert.equal(es.contato[1].url, "tel:+5548999990000");
+  const en = model(sampleFor("en"));
+  assert.equal(en.sections[1].jobs[0].meta, "Nuvem Tech | Florianópolis, Brazil (Hybrid) | 03/2022 – Present");
+  const pt = model(SAMPLE);
+  assert.deepEqual(
+    pt.contato.slice(0, 2).map((c) => c.text),
+    ["Florianópolis, SC", "(48) 99999-0000"]
+  );
+});
+
+test("o exemplo de cada idioma passa em toda a checagem", () => {
+  for (const lang of ["pt", "en", "es"]) {
+    const s = sampleFor(lang);
+    assert.deepEqual(
+      computeChecks(s, model(s)).filter((c) => !c.ok),
+      [],
+      lang
+    );
+  }
 });
 
 test("formação em andamento usa 'Início' e 'Previsão de conclusão'", () => {
@@ -54,12 +76,11 @@ test("checagem do exemplo passa em todos os itens", () => {
 });
 
 test("checagem reconhece verbos de ação no idioma do currículo", () => {
-  const en = normalize({
-    ...SAMPLE,
-    cvLang: "en",
-    exp: [{ ...SAMPLE.exp[0], bullets: "Built APIs used by 120k users\nReduced latency by 40%" }]
-  });
-  const verbs = (s) => computeChecks(s, model(s)).find((c) => c.text.startsWith("Conquistas começam")).ok;
+  const en = normalize(
+    { ...SAMPLE, exp: [{ ...SAMPLE.exp[0], bullets: "Built APIs used by 120k users\nReduced latency by 40%" }] },
+    "en"
+  );
+  const verbs = (s) => computeChecks(s, model(s))[6].ok; // 7º item: verbos de ação
   assert.equal(verbs(en), true);
   assert.equal(verbs({ ...en, cvLang: "pt" }), false);
 });
@@ -68,7 +89,7 @@ test("sanitize remove só o que a regra proíbe", () => {
   assert.deepEqual(sanitize("Ana2 Paula!", "nome"), {
     value: "Ana Paula",
     removed: true,
-    msg: "Use apenas letras, espaço, hífen e apóstrofo."
+    msg: "rNome"
   });
   assert.equal(sanitize("Desenvolvedor C++ / .NET (Pleno)", "exp.cargo").removed, false);
   assert.equal(sanitize("3M <b>", "exp.empresa").value, "3M b");
@@ -77,15 +98,9 @@ test("sanitize remove só o que a regra proíbe", () => {
 
 test("dateErrors aponta fim antes do início, mês inválido e datas futuras", () => {
   const now = 202610;
-  assert.equal(
-    dateErrors({ inicio: "01/2020", fim: "12/2019", atual: false }, "exp", now).fim,
-    "O fim não pode ser antes do início."
-  );
-  assert.equal(
-    dateErrors({ inicio: "13/2020", fim: "", atual: false }, "exp", now).inicio,
-    "Mês inválido: use de 01 a 12."
-  );
-  assert.match(dateErrors({ inicio: "01/2020", fim: "01/2030", atual: false }, "exp", now).fim, /futuro/);
+  assert.equal(dateErrors({ inicio: "01/2020", fim: "12/2019", atual: false }, "exp", now).fim, "dEndBefore");
+  assert.equal(dateErrors({ inicio: "13/2020", fim: "", atual: false }, "exp", now).inicio, "dMonth");
+  assert.equal(dateErrors({ inicio: "01/2020", fim: "01/2030", atual: false }, "exp", now).fim, "dEndFutureExp");
   assert.equal(dateErrors({ inicio: "01/2025", fim: "01/2029", status: "andamento" }, "edu", now).fim, "");
   assert.equal(dateErrors({ inicio: "01/2020", fim: "01/2030", atual: true }, "exp", now).fim, "");
 });

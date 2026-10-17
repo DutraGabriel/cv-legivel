@@ -1,9 +1,13 @@
 // Estado do currículo: formato, exemplo, validação do rascunho salvo e migrações.
+// Cada idioma (pt, en, es) tem o seu próprio rascunho salvo, como páginas independentes.
 // `normalize()` é puro: recebe qualquer coisa (até JSON corrompido) e devolve um estado válido.
 import { ym, ymNow } from "./format.js";
+import { DICTS, LANGS } from "./i18n/index.js";
 
-export const SCHEMA = 2;
-export const STORAGE_KEY = "cv-legivel-v1";
+export const SCHEMA = 3;
+/** Chave do rascunho no localStorage. O português mantém a chave antiga, de antes dos idiomas. */
+export const storageKey = (lang = "pt") => (lang === "pt" ? "cv-legivel-v1" : `cv-legivel-v1-${lang}`);
+export const STORAGE_KEY = storageKey("pt");
 
 export const UFS = [
   ["AC", "Acre"],
@@ -47,6 +51,10 @@ export const EMPTY_EXP = {
 };
 export const EMPTY_EDU = { curso: "", inst: "", status: "", inicio: "", fim: "" };
 
+/**
+ * `cvLang` é o idioma do rascunho (igual ao da página).
+ * Português usa `uf` + `cidade` (lista do IBGE); inglês e espanhol usam `pais` (código ISO) + `cidade` livre.
+ */
 export const EMPTY = {
   schema: SCHEMA,
   cvLang: "pt",
@@ -54,6 +62,7 @@ export const EMPTY = {
   cargo: "",
   email: "",
   telefone: "",
+  pais: "",
   uf: "",
   cidade: "",
   linkedin: "",
@@ -68,56 +77,10 @@ export const EMPTY = {
   vaga: ""
 };
 
-export const SAMPLE = {
-  ...EMPTY,
-  nome: "Mariana Souza",
-  cargo: "Desenvolvedora Back-end Pleno",
-  email: "mariana.souza@email.com",
-  telefone: "(48) 99999-0000",
-  uf: "SC",
-  cidade: "Florianópolis",
-  linkedin: "linkedin.com/in/marianasouza",
-  site: "github.com/marianasouza",
-  resumo:
-    "Desenvolvedora back-end com 5 anos de experiência em Python e Django, focada em APIs REST, integrações e performance de banco de dados. Liderei a migração de um monólito para serviços em AWS e reduzi o tempo médio de resposta em 40%. Busco atuar em produtos SaaS com times ágeis.",
-  exp: [
-    {
-      cargo: "Desenvolvedora Back-end",
-      empresa: "Nuvem Tech",
-      local: "Florianópolis, SC",
-      modalidade: "hibrido",
-      inicio: "03/2022",
-      fim: "",
-      atual: true,
-      bullets:
-        "Desenvolvi APIs REST em Django REST Framework usadas por 120 mil usuários ativos\nReduzi em 40% o tempo médio de resposta otimizando consultas PostgreSQL e adicionando cache Redis\nImplantei pipeline de CI/CD com GitHub Actions e Docker, cortando o tempo de deploy de 30 para 8 minutos"
-    },
-    {
-      cargo: "Desenvolvedora Júnior",
-      empresa: "Agência Pixel",
-      local: "",
-      modalidade: "remoto",
-      inicio: "01/2020",
-      fim: "02/2022",
-      atual: false,
-      bullets:
-        "Construí integrações com gateways de pagamento (Stripe, Pagar.me) em Python\nEscrevi testes automatizados com pytest, elevando a cobertura de 35% para 80%"
-    }
-  ],
-  edu: [
-    {
-      curso: "Bacharelado em Ciência da Computação",
-      inst: "Universidade Federal de Santa Catarina (UFSC)",
-      status: "concluido",
-      inicio: "02/2015",
-      fim: "12/2019"
-    }
-  ],
-  habilidades:
-    "Back-end: Python, Django, Django REST Framework\nBanco de dados: PostgreSQL, Redis\nInfraestrutura: Docker, AWS, CI/CD\nPráticas: Git, Testes automatizados, Scrum",
-  idiomas: "Português: nativo\nInglês: avançado",
-  certificacoes: "AWS Certified Cloud Practitioner (2023)"
-};
+/** Rascunho vazio de um idioma. */
+export const emptyFor = (lang = "pt") => ({ ...structuredClone(EMPTY), cvLang: lang });
+/** Currículo de exemplo (Mariana Souza) no idioma pedido. */
+export const sampleFor = (lang = "pt") => normalize(DICTS[lang].sample, lang);
 
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
@@ -183,27 +146,12 @@ function normalizeEdu(raw) {
 }
 
 /** Converte qualquer valor salvo (inclusive de versões antigas ou corrompido) num estado válido. */
-export function normalize(raw) {
+export function normalize(raw, lang = "pt") {
   const s = isObj(raw) ? raw : {};
-  const out = structuredClone(EMPTY);
-  for (const f of [
-    "nome",
-    "cargo",
-    "email",
-    "telefone",
-    "uf",
-    "cidade",
-    "linkedin",
-    "site",
-    "resumo",
-    "habilidades",
-    "idiomas",
-    "certificacoes",
-    "vaga"
-  ]) {
-    out[f] = str(s[f]);
-  }
-  out.cvLang = ["pt", "en", "es"].includes(s.cvLang) ? s.cvLang : "pt";
+  const out = emptyFor(LANGS.includes(lang) ? lang : "pt");
+  const fields = ["nome", "cargo", "email", "telefone", "uf", "cidade", "linkedin", "site", "resumo"];
+  for (const f of [...fields, "habilidades", "idiomas", "certificacoes", "vaga"]) out[f] = str(s[f]);
+  out.pais = /^[A-Z]{2}$/.test(str(s.pais)) ? s.pais : "";
   out.formacaoPrimeiro = s.formacaoPrimeiro === true;
   out.exp = Array.isArray(s.exp) && s.exp.length ? s.exp.map(normalizeExp) : [{ ...EMPTY_EXP }];
   out.edu = Array.isArray(s.edu) && s.edu.length ? s.edu.map(normalizeEdu) : [{ ...EMPTY_EDU }];
@@ -221,37 +169,78 @@ export function normalize(raw) {
   return out;
 }
 
-/** Lê o rascunho salvo. Devolve { state, isExample, error }. */
-export function load(storage = globalThis.localStorage) {
+/**
+ * Copia um rascunho para outro idioma, adaptando local e telefone:
+ * do português (UF + telefone brasileiro) para inglês/espanhol (país + telefone internacional) e vice-versa.
+ */
+export function copyToLang(state, lang) {
+  const out = normalize(state, lang);
+  const digits = state.telefone.replace(/\D/g, "");
+  if (state.cvLang === "pt" && lang !== "pt") {
+    out.pais = "BR";
+    out.uf = "";
+    if (digits.length >= 10) out.telefone = `+55 ${digits.slice(0, 2)} ${digits.slice(2, -4)}-${digits.slice(-4)}`;
+  } else if (state.cvLang !== "pt" && lang === "pt") {
+    out.uf = ""; // a cidade livre não corresponde a uma UF da lista do IBGE: a pessoa escolhe de novo
+    out.cidade = state.pais === "BR" ? state.cidade : "";
+    if (state.pais === "BR" && digits.startsWith("55")) out.telefone = digits.slice(2);
+  }
+  return out;
+}
+
+/**
+ * Rascunho vindo de um arquivo exportado, para a página do idioma `lang`.
+ * Um arquivo de outro idioma passa por copyToLang (telefone e local adaptados);
+ * arquivos de antes dos idiomas, sem `cvLang`, eram em português.
+ */
+export function fromImport(data, lang) {
+  const from = LANGS.includes(data?.cvLang) ? data.cvLang : "pt";
+  return copyToLang(normalize(data, from), lang);
+}
+
+/** Lê o rascunho salvo de um idioma. Devolve { state, isExample, error }. */
+export function load(storage = globalThis.localStorage, lang = "pt") {
   let raw;
   try {
-    raw = storage?.getItem(STORAGE_KEY) ?? null;
+    raw = storage?.getItem(storageKey(lang)) ?? null;
   } catch {
-    return { state: structuredClone(SAMPLE), isExample: true, error: "storage" };
+    return { state: sampleFor(lang), isExample: true, error: "storage" };
   }
-  if (raw === null) return { state: structuredClone(SAMPLE), isExample: true, error: null };
+  if (raw === null) return { state: sampleFor(lang), isExample: true, error: null };
   try {
-    return { state: normalize(JSON.parse(raw)), isExample: false, error: null };
+    return { state: normalize(JSON.parse(raw), lang), isExample: false, error: null };
   } catch {
     // JSON corrompido: começa vazio em vez de travar o site
-    return { state: structuredClone(EMPTY), isExample: false, error: "corrupt" };
+    return { state: emptyFor(lang), isExample: false, error: "corrupt" };
+  }
+}
+
+/** true se existe rascunho salvo nesse idioma. */
+export function hasDraft(storage = globalThis.localStorage, lang = "pt") {
+  try {
+    return storage?.getItem(storageKey(lang)) != null;
+  } catch {
+    return false;
   }
 }
 
 /** Salva o rascunho. Devolve false quando o navegador não permite (aba anônima, cota cheia). */
 export function save(state, storage = globalThis.localStorage) {
   try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(state));
+    storage.setItem(storageKey(state.cvLang), JSON.stringify(state));
     return true;
   } catch {
     return false;
   }
 }
 
-export function clear(storage = globalThis.localStorage) {
+export function clear(storage = globalThis.localStorage, lang = "pt") {
   try {
-    storage.removeItem(STORAGE_KEY);
+    storage.removeItem(storageKey(lang));
   } catch {
     /* nada a fazer: o armazenamento já está indisponível */
   }
 }
+
+/** Exemplo em português, usado nos testes. */
+export const SAMPLE = sampleFor("pt");

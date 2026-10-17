@@ -4,27 +4,37 @@
 // - Bibliotecas pesadas (jsPDF, pdf.js, fonte Unicode): guardadas no primeiro uso.
 // - Lista de cidades do IBGE: rede primeiro, cache como reserva.
 // Ao mudar qualquer arquivo listado em SHELL, aumente VERSION (o teste unitário confere a lista).
-const VERSION = "v2.0.1";
+const VERSION = "v2.2.0";
 const CACHE = `cv-legivel-${VERSION}`;
 
 const SHELL = [
   "./",
   "index.html",
+  "en/",
+  "en/index.html",
+  "es/",
+  "es/index.html",
   "manifest.webmanifest",
+  "en/manifest.webmanifest",
+  "es/manifest.webmanifest",
   "assets/css/fonts.css",
   "assets/css/styles.css",
   "assets/icons/icon.svg",
   "assets/icons/icon-192.png",
-  "assets/js/theme-init.js",
+  "assets/js/boot.js",
   "assets/js/main.js",
   "assets/js/checks.js",
-  "assets/js/cv-i18n.js",
+  "assets/js/options.js",
   "assets/js/format.js",
   "assets/js/jobmatch.js",
   "assets/js/model.js",
   "assets/js/pdf.js",
   "assets/js/rules.js",
   "assets/js/state.js",
+  "assets/js/i18n/index.js",
+  "assets/js/i18n/pt.js",
+  "assets/js/i18n/en.js",
+  "assets/js/i18n/es.js",
   "assets/js/ui/chrome.js",
   "assets/js/ui/data-io.js",
   "assets/js/ui/dom.js",
