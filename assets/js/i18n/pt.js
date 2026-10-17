@@ -119,7 +119,7 @@ export default {
 
     privacyTitle: "Seus dados ficam neste navegador",
     privacyText:
-      'Nada do que você digita é enviado a servidores. Em computador compartilhado, exporte uma cópia e use "Limpar tudo" ao terminar.',
+      'Nada do que você digita vai para servidores. Em computador compartilhado, exporte uma cópia e use "Limpar tudo" ao sair.',
     exportBtn: "Exportar dados",
     importBtn: "Importar dados",
     clearBtn: "Limpar tudo",
@@ -175,7 +175,7 @@ export default {
     cResumo: "Resumo entre 30 e 90 palavras (agora: {n})",
     cSkills: "Pelo menos 6 habilidades (agora: {n})",
     cDates: "Toda experiência tem início e fim (MM/AAAA)",
-    cNumbers: "Metade ou mais das conquistas com números",
+    cNumbers: "Metade ou mais conquistas com números",
     cNow: "(agora: {a} de {b})",
     cNone: "(nenhuma conquista ainda)",
     cVerbs: "Conquistas começam com verbo de ação",

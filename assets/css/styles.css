@@ -236,6 +236,12 @@ select {
   width: 100%;
   min-height: 42px;
 }
+/* campo de texto e lista com a mesma altura: a página em português usa listas (UF, cidade)
+   onde as outras usam campos de texto (cidade), e as linhas do formulário ficam iguais */
+input:not([type="checkbox"]),
+select {
+  height: 44px;
+}
 select {
   padding-right: 8px;
   text-overflow: ellipsis;
@@ -457,8 +463,9 @@ aside {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 4px 16px;
+  /* uma coluna: cada item tem a largura toda e o cartão não muda de altura conforme o idioma */
+  grid-template-columns: 1fr;
+  gap: 4px;
   font-size: 0.85rem;
 }
 .checks li {

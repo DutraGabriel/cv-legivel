@@ -50,6 +50,8 @@ async function shot(browser, lang, file, width, height) {
   await page.goto(base + LANG_PATH[lang]);
   await page.waitForSelector("#sheet .nm", { state: "attached" });
   await page.evaluate(() => document.fonts.ready);
+  // na página em português, espera a lista de cidades do IBGE (senão aparece "Carregando cidades…")
+  if (lang === "pt") await page.waitForSelector("#cidade:not([disabled])", { timeout: 15_000 });
   await page.screenshot({ path: join(root, file) });
   await context.close();
   console.log(`gerado ${file}`);

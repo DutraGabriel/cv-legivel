@@ -32,7 +32,7 @@ test("nenhum texto ficou vazio", () => {
 });
 
 test("t() traduz e preenche parâmetros", () => {
-  assert.equal(t("cResumo", { n: 40 }, "en"), "Summary between 30 and 90 words (now: 40)");
+  assert.equal(t("cResumo", { n: 40 }, "en"), "Summary of 30 to 90 words (now: 40)");
   assert.equal(t("mod.hibrido", {}, "es"), "Híbrido");
   assert.equal(t("chave-que-nao-existe", {}, "en"), "chave-que-nao-existe");
 });

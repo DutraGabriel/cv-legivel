@@ -1,10 +1,11 @@
 // Service worker: deixa o CV Legível funcionando sem internet depois do primeiro acesso.
-// - Página (HTML): rede primeiro, para receber atualizações; cache se estiver offline.
+// - Página (HTML): rede primeiro, sempre conferindo com o servidor (sem aceitar a cópia de até
+//   10 minutos que o GitHub Pages permite); cache só se estiver offline.
 // - Arquivos do site (CSS, JS, fontes, ícones): cache primeiro, atualizados quando VERSION muda.
 // - Bibliotecas pesadas (jsPDF, pdf.js, fonte Unicode): guardadas no primeiro uso.
 // - Lista de cidades do IBGE: rede primeiro, cache como reserva.
 // Ao mudar qualquer arquivo listado em SHELL, aumente VERSION (o teste unitário confere a lista).
-const VERSION = "v2.2.0";
+const VERSION = "v2.2.1";
 const CACHE = `cv-legivel-${VERSION}`;
 
 const SHELL = [
@@ -53,7 +54,8 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches
       .open(CACHE)
-      .then((c) => c.addAll(SHELL))
+      // cache: "reload" baixa do servidor, nunca do cache do navegador: sem misturar arquivos de versões diferentes
+      .then((c) => c.addAll(SHELL.map((url) => new Request(url, { cache: "reload" }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -69,10 +71,10 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-const networkFirst = async (req) => {
+const networkFirst = async (req, init) => {
   const cache = await caches.open(CACHE);
   try {
-    const res = await fetch(req);
+    const res = await fetch(req, init);
     if (res.ok) cache.put(req, res.clone());
     return res;
   } catch {
@@ -95,6 +97,6 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.hostname === "servicodados.ibge.gov.br") return e.respondWith(networkFirst(req));
   if (url.origin !== location.origin) return;
-  if (req.mode === "navigate") return e.respondWith(networkFirst(req));
+  if (req.mode === "navigate") return e.respondWith(networkFirst(req, { cache: "no-cache" }));
   e.respondWith(cacheFirst(req));
 });

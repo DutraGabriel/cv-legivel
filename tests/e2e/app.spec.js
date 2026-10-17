@@ -56,7 +56,7 @@ test("página em inglês: interface, exemplo, PDF e nome do arquivo em inglês",
   await expect(page.locator("legend").first()).toHaveText("Personal details");
   await expect(page.locator("#pdfBtn")).toHaveText("Download PDF");
   await expect(page.locator("label", { hasText: "Country" }).locator("select")).toHaveValue("BR");
-  await expect(page.locator("#checkList")).toContainText("Summary between 30 and 90 words");
+  await expect(page.locator("#checkList")).toContainText("Summary of 30 to 90 words");
   const { name, buffer } = await downloadPdf(page);
   expect(name).toBe("Mariana-Souza-Resume.pdf");
   const { text } = await pdfText(buffer);
